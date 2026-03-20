@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Persona {
+  id             String          @id @default(cuid())
+  name           String
+  description    String?
+  systemPrompt   String
+  emotionalHooks String          @default("[]")
+  customerQuotes String          @default("[]")
+  toneNotes      String?
+  active         Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  generationRuns GenerationRun[]
+}
+
+model AdType {
+  id                  String   @id @default(cuid())
+  name                String
+  category            String
+  description         String
+  imagePromptTemplate String?
+  exampleDescription  String?
+  requiresQuote       Boolean  @default(false)
+  requiresBeforeAfter Boolean  @default(false)
+  requiresComparison  Boolean  @default(false)
+  useCalloutFacts     Boolean  @default(true)
+  approvedExamples    String   @default("[]")
+  qualityNotes        String?
+  active              Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model ImageLibrary {
+  id               String    @id @default(cuid())
+  name             String
+  sourceType       String    @default("manual")
+  googleSheetId    String?
+  googleSheetRange String?
+  images           String    @default("[]")
+  active           Boolean   @default(true)
+  lastSyncedAt     DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model AiProvider {
+  id          String   @id @default(cuid())
+  name        String
+  type        String
+  provider    String
+  apiKey      String
+  modelName   String
+  endpointUrl String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ColorPalette {
+  id     String  @id @default(cuid())
+  name   String
+  hex    String
+  active Boolean @default(true)
+}
+
+model CalloutFact {
+  id        String   @id @default(cuid())
+  text      String
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CalloutFactSource {
+  id               String    @id @default(cuid())
+  name             String    @default("Callout Facts")
+  googleSheetId    String?
+  googleSheetRange String?
+  lastSyncedAt     DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model AdFeedback {
+  id              String   @id @default(cuid())
+  runId           String
+  adIndex         Int
+  adTypeName      String
+  adTypeId        String?
+  personaId       String?
+  headline        String
+  subheadline     String?
+  bodyCopy        String?
+  cta             String
+  imagePrompt     String
+  backgroundColor String
+  decision        String
+  discardReason   String?
+  notes           String?
+  driveFileUrl    String?
+  createdAt       DateTime @default(now())
+}
+
+model GenerationRun {
+  id              String   @id @default(cuid())
+  personaId       String
+  persona         Persona  @relation(fields: [personaId], references: [id])
+  adCount         Int
+  successCount    Int      @default(0)
+  failCount       Int      @default(0)
+  imageRatio      String
+  durationSeconds Int?
+  driveFolderUrl  String?
+  config          String   @default("{}")
+  ads             String   @default("[]")
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
