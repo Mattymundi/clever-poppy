@@ -5,7 +5,7 @@ function createPrismaClient() {
   if (process.env.TURSO_DATABASE_URL) {
     // Production: use libsql adapter for Turso
     const { PrismaLibSQL } = require("@prisma/adapter-libsql");
-    const { createClient } = require("@libsql/client/http");
+    const { createClient } = require("@libsql/client");
     const libsql = createClient({
       url: process.env.TURSO_DATABASE_URL,
       authToken: process.env.TURSO_AUTH_TOKEN,
