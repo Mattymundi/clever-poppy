@@ -7,82 +7,56 @@ interface AnalysisResult {
   approvedExamples: object[];
 }
 
-export async function analyzeAndImprove(
-  copyProviderId: string
+/**
+ * Analyze feedback for a specific ad type (only unanalyzed records).
+ * After analysis, marks those feedback records as analyzed.
+ */
+export async function analyzeAdType(
+  copyProviderId: string,
+  adTypeName: string
 ): Promise<{
-  updated: number;
-  results: Array<{
-    adTypeId: string;
-    adTypeName: string;
-    qualityNotes: string;
-    examplesCount: number;
-  }>;
+  adTypeId: string;
+  adTypeName: string;
+  qualityNotes: string;
+  examplesCount: number;
+  analyzedCount: number;
 }> {
-  // Load the AI provider and decrypt key
   const provider = await prisma.aiProvider.findUniqueOrThrow({
     where: { id: copyProviderId },
   });
   const apiKey = decrypt(provider.apiKey);
-
   const client = new Anthropic({ apiKey });
   const model = provider.modelName || "claude-sonnet-4-20250514";
 
-  // Load all feedback
-  const allFeedback = await prisma.adFeedback.findMany({
+  // Load unanalyzed feedback for this ad type
+  const feedbackList = await prisma.adFeedback.findMany({
+    where: { adTypeName, analyzed: false },
     orderBy: { createdAt: "desc" },
   });
 
-  // Group by adTypeName (the snake_case name from Claude's output)
-  const grouped = new Map<string, typeof allFeedback>();
-  for (const fb of allFeedback) {
-    const key = fb.adTypeName;
-    if (!key) continue;
-    if (!grouped.has(key)) grouped.set(key, []);
-    grouped.get(key)!.push(fb);
+  if (feedbackList.length < 20) {
+    throw new Error(`Need at least 20 reviews to analyze (have ${feedbackList.length})`);
   }
 
-  // Load all ad types to match by name
+  // Find matching AdType record
   const adTypes = await prisma.adType.findMany();
-
-  // Build a lookup: normalize name to match snake_case from Claude
-  // e.g. "Before/After Split" -> "before_after_split", "before-after-split" -> "before_after_split"
   function normalize(name: string): string {
     return name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
   }
-
   const adTypeByNormalizedName = new Map<string, (typeof adTypes)[0]>();
   for (const at of adTypes) {
     adTypeByNormalizedName.set(normalize(at.name), at);
     adTypeByNormalizedName.set(normalize(at.id), at);
   }
+  const adType = adTypeByNormalizedName.get(normalize(adTypeName));
+  if (!adType) {
+    throw new Error(`No AdType found matching "${adTypeName}"`);
+  }
 
-  const results: Array<{
-    adTypeId: string;
-    adTypeName: string;
-    qualityNotes: string;
-    examplesCount: number;
-  }> = [];
+  const kept = feedbackList.filter((f) => f.decision === "keep");
+  const discarded = feedbackList.filter((f) => f.decision === "discard");
 
-  for (const [adTypeName, feedbackList] of grouped) {
-    // Only analyze ad types with >= 5 feedback records
-    if (feedbackList.length < 5) {
-      console.log(`Skipping "${adTypeName}" — only ${feedbackList.length} reviews (need 5+)`);
-      continue;
-    }
-
-    // Find matching AdType record
-    const adType = adTypeByNormalizedName.get(normalize(adTypeName));
-    if (!adType) {
-      console.warn(`No AdType found for feedback name "${adTypeName}"`);
-      continue;
-    }
-
-    const kept = feedbackList.filter((f) => f.decision === "keep");
-    const discarded = feedbackList.filter((f) => f.decision === "discard");
-
-    console.log(`Analyzing "${adType.name}": ${kept.length} kept, ${discarded.length} discarded`);
-
-    const prompt = `You are analyzing ad copy and image prompt feedback for the ad type "${adType.name}".
+  const prompt = `You are analyzing ad copy and image prompt feedback for the ad type "${adType.name}".
 
 Here are KEPT (approved) ads — the user liked these:
 ${JSON.stringify(
@@ -121,49 +95,78 @@ Return a JSON object with:
 
 Return ONLY valid JSON, no markdown fences.`;
 
+  const response = await client.messages.create({
+    model,
+    max_tokens: 4096,
+    messages: [{ role: "user", content: prompt }],
+  });
+
+  const text =
+    response.content[0].type === "text" ? response.content[0].text : "";
+
+  let analysis: AnalysisResult;
+  try {
+    analysis = JSON.parse(text.trim());
+  } catch {
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error(`Failed to parse analysis response`);
+    }
+    analysis = JSON.parse(jsonMatch[0]);
+  }
+
+  // Update the AdType record
+  await prisma.adType.update({
+    where: { id: adType.id },
+    data: {
+      qualityNotes: analysis.qualityNotes,
+      approvedExamples: JSON.stringify(analysis.approvedExamples || []),
+    },
+  });
+
+  // Mark feedback records as analyzed
+  const feedbackIds = feedbackList.map((f) => f.id);
+  await prisma.adFeedback.updateMany({
+    where: { id: { in: feedbackIds } },
+    data: { analyzed: true },
+  });
+
+  return {
+    adTypeId: adType.id,
+    adTypeName: adType.name,
+    qualityNotes: analysis.qualityNotes,
+    examplesCount: (analysis.approvedExamples || []).length,
+    analyzedCount: feedbackIds.length,
+  };
+}
+
+/**
+ * Legacy: analyze all ad types at once (kept for backwards compat)
+ */
+export async function analyzeAndImprove(
+  copyProviderId: string
+): Promise<{ updated: number; results: any[] }> {
+  // Get unanalyzed feedback grouped by ad type
+  const allFeedback = await prisma.adFeedback.findMany({
+    where: { analyzed: false },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const grouped = new Map<string, typeof allFeedback>();
+  for (const fb of allFeedback) {
+    if (!fb.adTypeName) continue;
+    if (!grouped.has(fb.adTypeName)) grouped.set(fb.adTypeName, []);
+    grouped.get(fb.adTypeName)!.push(fb);
+  }
+
+  const results: any[] = [];
+  for (const [adTypeName, feedbackList] of grouped) {
+    if (feedbackList.length < 20) continue;
     try {
-      const response = await client.messages.create({
-        model,
-        max_tokens: 4096,
-        messages: [{ role: "user", content: prompt }],
-      });
-
-      const text =
-        response.content[0].type === "text" ? response.content[0].text : "";
-
-      // Parse the JSON response
-      let analysis: AnalysisResult;
-      try {
-        analysis = JSON.parse(text.trim());
-      } catch {
-        // Try extracting JSON from the response
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) {
-          console.error(`Failed to parse analysis for ${adType.name}:`, text);
-          continue;
-        }
-        analysis = JSON.parse(jsonMatch[0]);
-      }
-
-      // Update the AdType record
-      await prisma.adType.update({
-        where: { id: adType.id },
-        data: {
-          qualityNotes: analysis.qualityNotes,
-          approvedExamples: JSON.stringify(analysis.approvedExamples || []),
-        },
-      });
-
-      console.log(`Updated "${adType.name}" with quality notes and ${(analysis.approvedExamples || []).length} examples`);
-
-      results.push({
-        adTypeId: adType.id,
-        adTypeName: adType.name,
-        qualityNotes: analysis.qualityNotes,
-        examplesCount: (analysis.approvedExamples || []).length,
-      });
+      const result = await analyzeAdType(copyProviderId, adTypeName);
+      results.push(result);
     } catch (err: any) {
-      console.error(`Analysis failed for ${adType.name}:`, err.message);
+      console.error(`Analysis failed for ${adTypeName}:`, err.message);
     }
   }
 

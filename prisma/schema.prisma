@@ -117,6 +117,7 @@ model AdFeedback {
   discardReason   String?
   notes           String?
   driveFileUrl    String?
+  analyzed        Boolean  @default(false)
   createdAt       DateTime @default(now())
 }
 

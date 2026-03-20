@@ -100,11 +100,12 @@ export default function GeneratePage() {
   const [selectedAdTypeIds, setSelectedAdTypeIds] = useState<Set<string>>(new Set())
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null)
   const [imageRatio, setImageRatio] = useState<string>("1:1")
-  const [adCount, setAdCount] = useState<number>(50)
+  const [adCount, setAdCount] = useState<number>(10)
   const [selectedColorIds, setSelectedColorIds] = useState<Set<string>>(new Set())
   const [copyProviderId, setCopyProviderId] = useState<string>("")
   const [imageProviderId, setImageProviderId] = useState<string>("")
   const [offer, setOffer] = useState<string>("")
+  const [forceOffer, setForceOffer] = useState<boolean>(false)
 
   // ---- Generation / progress state ----
   const [generating, setGenerating] = useState(false)
@@ -312,6 +313,7 @@ export default function GeneratePage() {
           copyProviderId,
           imageProviderId,
           offer: offer || undefined,
+          forceOffer: forceOffer && !!offer,
         }),
       })
 
@@ -649,12 +651,23 @@ export default function GeneratePage() {
                 Add a current promotion to include in the ads. Leave blank to skip.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
               <Input
                 placeholder="e.g. Buy 3 kits or more and get 25% OFF"
                 value={offer}
                 onChange={(e) => setOffer(e.target.value)}
               />
+              {offer.trim() && (
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={forceOffer}
+                    onChange={(e) => setForceOffer(e.target.checked)}
+                    className="rounded border-border"
+                  />
+                  Use this offer in every ad
+                </label>
+              )}
             </CardContent>
           </Card>
 

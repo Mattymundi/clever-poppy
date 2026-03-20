@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { analyzeAndImprove } from "@/lib/feedback-analyzer";
+import { analyzeAdType, analyzeAndImprove } from "@/lib/feedback-analyzer";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { copyProviderId } = body;
+    const { copyProviderId, adTypeName } = body;
 
     if (!copyProviderId) {
       return NextResponse.json(
@@ -13,8 +13,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await analyzeAndImprove(copyProviderId);
+    // Per-ad-type analysis
+    if (adTypeName) {
+      const result = await analyzeAdType(copyProviderId, adTypeName);
+      return NextResponse.json({
+        message: `Analysis complete for ${result.adTypeName}. ${result.analyzedCount} reviews processed.`,
+        ...result,
+      });
+    }
 
+    // Legacy: analyze all
+    const result = await analyzeAndImprove(copyProviderId);
     return NextResponse.json({
       message: `Analysis complete. Updated ${result.updated} ad types.`,
       ...result,

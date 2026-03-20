@@ -33,6 +33,7 @@ interface BuildPromptParams {
   calloutFacts: string[];
   kitNames: string[];
   offer?: string;
+  forceOffer?: boolean;
   feedbackSummary?: string;
   trendBrief?: string;
 }
@@ -116,6 +117,9 @@ export function buildSystemPrompt(params: BuildPromptParams): string {
   // Inject offer (optional — remove section if empty)
   if (params.offer && params.offer.trim()) {
     prompt = prompt.replace("{{CURRENT_OFFER}}", params.offer.trim());
+    if (params.forceOffer) {
+      prompt += `\n\n⚠️ MANDATORY OFFER REQUIREMENT — THIS IS NON-NEGOTIABLE:\nThe offer "${params.offer.trim()}" MUST appear prominently in EVERY SINGLE ad you generate. No exceptions. Every ad must feature this offer as a key visual element — whether as a headline, banner, badge, sticker, overlay, or callout. Do NOT generate any ad without this offer clearly visible and readable. This is the most important requirement for this batch.`;
+    }
   } else {
     // Remove the entire offer line/section if no offer
     prompt = prompt.replace(/\n?.*\{\{CURRENT_OFFER\}\}.*\n?/g, "\n");

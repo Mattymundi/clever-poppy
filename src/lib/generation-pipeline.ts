@@ -15,6 +15,7 @@ interface GenerationConfig {
   imageProviderId: string;
   driveFolderUrl?: string;
   offer?: string;
+  forceOffer?: boolean;
 }
 
 export async function runGenerationPipeline(runId: string, config: GenerationConfig) {
@@ -99,6 +100,7 @@ export async function runGenerationPipeline(runId: string, config: GenerationCon
       calloutFacts: calloutFacts.map((f) => f.text),
       kitNames,
       offer: config.offer,
+      forceOffer: config.forceOffer,
     });
 
     // Create copy provider and generate ad copy

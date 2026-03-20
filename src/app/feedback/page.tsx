@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Loader2, TrendingUp, TrendingDown, BarChart3, Sparkles } from "lucide-react"
+import { Loader2, TrendingUp, TrendingDown, BarChart3, Sparkles, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -33,16 +33,19 @@ interface FeedbackStats {
   byColor: { color: string; kept: number; discarded: number; rate: number }[]
 }
 
-interface FeedbackItem {
-  id: string
-  runId: string
-  adIndex: number
+interface PendingGroup {
   adTypeName: string
-  headline: string
-  cta: string
-  decision: "keep" | "discard"
-  discardReason: string | null
-  createdAt: string
+  kept: number
+  discarded: number
+  total: number
+  canAnalyze: boolean
+  items: {
+    id: string
+    headline: string
+    decision: string
+    discardReason: string | null
+    createdAt: string
+  }[]
 }
 
 interface AiProvider {
@@ -74,56 +77,61 @@ const REASON_LABELS: Record<string, string> = {
 
 export default function FeedbackPage() {
   const [stats, setStats] = useState<FeedbackStats | null>(null)
-  const [recentFeedback, setRecentFeedback] = useState<FeedbackItem[]>([])
+  const [pendingGroups, setPendingGroups] = useState<PendingGroup[]>([])
+  const [totalPending, setTotalPending] = useState(0)
   const [loading, setLoading] = useState(true)
 
-  // Analyze state
+  // Provider state
   const [providers, setProviders] = useState<AiProvider[]>([])
   const [selectedProviderId, setSelectedProviderId] = useState<string>("")
-  const [analyzing, setAnalyzing] = useState(false)
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const [statsRes, feedbackRes, providersRes] = await Promise.all([
-          fetch("/api/feedback/stats"),
-          fetch("/api/feedback?limit=20"),
-          fetch("/api/providers"),
-        ])
+  // Per-ad-type analyzing state
+  const [analyzingType, setAnalyzingType] = useState<string | null>(null)
 
-        const statsData = await statsRes.json()
-        const feedbackData = await feedbackRes.json()
-        const providersData = await providersRes.json()
+  const loadData = async () => {
+    try {
+      const [statsRes, pendingRes, providersRes] = await Promise.all([
+        fetch("/api/feedback/stats"),
+        fetch("/api/feedback/pending"),
+        fetch("/api/providers"),
+      ])
 
-        setStats(statsData)
-        setRecentFeedback(feedbackData.feedback || [])
+      const statsData = await statsRes.json()
+      const pendingData = await pendingRes.json()
+      const providersData = await providersRes.json()
 
-        const copyProviders = (providersData as AiProvider[]).filter(
-          (p) => p.active && (p.type === "copy" || p.type === "both")
-        )
-        setProviders(copyProviders)
-        if (copyProviders.length > 0) setSelectedProviderId(copyProviders[0].id)
-      } catch {
-        toast.error("Failed to load feedback data")
-      } finally {
-        setLoading(false)
+      setStats(statsData)
+      setPendingGroups(pendingData.groups || [])
+      setTotalPending(pendingData.totalPending || 0)
+
+      const copyProviders = (providersData as AiProvider[]).filter(
+        (p) => p.active && (p.type === "copy" || p.type === "both")
+      )
+      setProviders(copyProviders)
+      if (copyProviders.length > 0 && !selectedProviderId) {
+        setSelectedProviderId(copyProviders[0].id)
       }
+    } catch {
+      toast.error("Failed to load feedback data")
+    } finally {
+      setLoading(false)
     }
-    load()
-  }, [])
+  }
 
-  const handleAnalyze = async () => {
+  useEffect(() => { loadData() }, [])
+
+  const handleAnalyzeType = async (adTypeName: string) => {
     if (!selectedProviderId) {
-      toast.error("Please select a copy provider")
+      toast.error("Please select a copy provider first")
       return
     }
 
-    setAnalyzing(true)
+    setAnalyzingType(adTypeName)
     try {
       const res = await fetch("/api/feedback/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ copyProviderId: selectedProviderId }),
+        body: JSON.stringify({ copyProviderId: selectedProviderId, adTypeName }),
       })
 
       if (!res.ok) {
@@ -131,11 +139,15 @@ export default function FeedbackPage() {
         throw new Error(err.error || "Analysis failed")
       }
 
-      toast.success("Analysis complete! Check the results below.")
+      const result = await res.json()
+      toast.success(result.message || "Analysis complete!")
+
+      // Reload data — analyzed reviews will disappear
+      await loadData()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Analysis failed")
     } finally {
-      setAnalyzing(false)
+      setAnalyzingType(null)
     }
   }
 
@@ -153,7 +165,6 @@ export default function FeedbackPage() {
           ))}
         </div>
         <Skeleton className="h-64 rounded-xl" />
-        <Skeleton className="h-48 rounded-xl" />
       </div>
     )
   }
@@ -162,12 +173,10 @@ export default function FeedbackPage() {
   const byAdType = stats?.byAdType || []
   const byDiscardReason = stats?.byDiscardReason || []
 
-  // Find most approved / rejected types
   const sortedByRate = [...byAdType].sort((a, b) => b.rate - a.rate)
   const mostApproved = sortedByRate.length > 0 ? sortedByRate[0] : null
   const mostRejected = sortedByRate.length > 0 ? sortedByRate[sortedByRate.length - 1] : null
 
-  // Max discard reason count for bar scaling
   const maxReasonCount = byDiscardReason.length > 0
     ? Math.max(...byDiscardReason.map((r) => r.count))
     : 1
@@ -183,7 +192,7 @@ export default function FeedbackPage() {
       </div>
 
       {/* Overview Stats */}
-      {totals.total === 0 ? (
+      {totals.total === 0 && totalPending === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <BarChart3 className="size-12 text-muted-foreground/30 mb-4" />
@@ -202,9 +211,7 @@ export default function FeedbackPage() {
             </div>
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">Approval Rate</p>
-              <p className="text-2xl font-semibold">
-                {totals.approvalRate}%
-              </p>
+              <p className="text-2xl font-semibold">{totals.approvalRate}%</p>
             </div>
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground flex items-center gap-1">
@@ -230,10 +237,124 @@ export default function FeedbackPage() {
             </div>
           </div>
 
-          {/* Approval by Ad Type */}
+          {/* Pending Reviews by Ad Type — with per-type Analyze buttons */}
+          {pendingGroups.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold tracking-tight">
+                    Pending Reviews
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    {totalPending} unanalyzed reviews — grouped by ad type (minimum 20 to analyze)
+                  </p>
+                </div>
+                {providers.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">Provider:</span>
+                    <Select
+                      value={selectedProviderId}
+                      onValueChange={(v) => { if (v) setSelectedProviderId(v) }}
+                    >
+                      <SelectTrigger className="w-48 h-8 text-xs">
+                        <SelectValue placeholder="Select provider" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {providers.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {p.name} ({p.modelName})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                {pendingGroups.map((group) => (
+                  <div
+                    key={group.adTypeName}
+                    className="rounded-xl border bg-card overflow-hidden"
+                  >
+                    <div className="flex items-center justify-between px-5 py-4">
+                      <div className="flex items-center gap-4 min-w-0">
+                        <span className="text-sm font-medium truncate">
+                          {group.adTypeName}
+                        </span>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
+                          <span>{group.total} reviews</span>
+                          <span className="text-emerald-500">{group.kept} kept</span>
+                          <span className="text-red-400">{group.discarded} discarded</span>
+                        </div>
+                      </div>
+                      <div className="shrink-0 ml-4">
+                        {group.canAnalyze ? (
+                          <Button
+                            size="sm"
+                            onClick={() => handleAnalyzeType(group.adTypeName)}
+                            disabled={analyzingType !== null || !selectedProviderId}
+                          >
+                            {analyzingType === group.adTypeName ? (
+                              <>
+                                <Loader2 className="size-3.5 animate-spin" />
+                                Analyzing...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="size-3.5" />
+                                Analyze & Improve
+                              </>
+                            )}
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">
+                            {20 - group.total} more needed
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Preview of recent reviews */}
+                    {group.items.length > 0 && (
+                      <div className="border-t divide-y">
+                        {group.items.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center gap-3 px-5 py-2 text-xs"
+                          >
+                            <Badge
+                              variant="secondary"
+                              className={`text-[10px] shrink-0 ${
+                                item.decision === "keep"
+                                  ? "bg-emerald-500/10 text-emerald-500"
+                                  : "bg-red-400/10 text-red-400"
+                              }`}
+                            >
+                              {item.decision === "keep" ? "Kept" : "Discarded"}
+                            </Badge>
+                            <span className="truncate flex-1 text-muted-foreground">
+                              {item.headline}
+                            </span>
+                            {item.discardReason && (
+                              <Badge variant="outline" className="text-[10px] shrink-0">
+                                {REASON_LABELS[item.discardReason] || item.discardReason}
+                              </Badge>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* All-time Approval by Ad Type */}
           {byAdType.length > 0 && (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold tracking-tight">Approval by Ad Type</h2>
+              <h2 className="text-xl font-semibold tracking-tight">All-Time Approval by Ad Type</h2>
               <div className="rounded-xl border bg-card">
                 <div className="grid grid-cols-[1fr_auto_auto_auto_1fr] items-center gap-x-4 gap-y-0 px-5 py-3 text-xs font-medium text-muted-foreground border-b">
                   <span>Ad Type</span>
@@ -296,105 +417,8 @@ export default function FeedbackPage() {
               </div>
             </div>
           )}
-
-          {/* Recent Reviews */}
-          {recentFeedback.length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold tracking-tight">Recent Reviews</h2>
-              <div className="rounded-xl border bg-card divide-y">
-                {recentFeedback.slice(0, 10).map((item) => (
-                  <div key={item.id} className="flex items-center gap-3 px-5 py-3">
-                    <Badge
-                      variant="secondary"
-                      className={`text-[10px] shrink-0 ${
-                        item.decision === "keep"
-                          ? "bg-emerald-500/10 text-emerald-500"
-                          : "bg-red-400/10 text-red-400"
-                      }`}
-                    >
-                      {item.decision === "keep" ? "Kept" : "Discarded"}
-                    </Badge>
-                    <span className="text-sm font-medium truncate flex-1">
-                      {item.headline}
-                    </span>
-                    <span className="text-xs text-muted-foreground shrink-0">
-                      {item.adTypeName}
-                    </span>
-                    {item.discardReason && (
-                      <Badge variant="outline" className="text-[10px] shrink-0">
-                        {REASON_LABELS[item.discardReason] || item.discardReason}
-                      </Badge>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </>
       )}
-
-      {/* Analyze & Improve */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold tracking-tight">Analyze & Improve</h2>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="size-5 text-primary" />
-              AI-Powered Analysis
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Use an AI copy provider to analyze your feedback patterns and generate
-              actionable suggestions for improving ad quality. The analysis examines
-              approval rates, common discard reasons, and ad type performance to
-              recommend prompt and configuration changes.
-            </p>
-            <div className="flex items-end gap-3">
-              <div className="space-y-2 flex-1">
-                <label className="text-sm font-medium">Copy Provider</label>
-                {providers.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    No copy providers configured. Add one in Settings.
-                  </p>
-                ) : (
-                  <Select
-                    value={selectedProviderId}
-                    onValueChange={(v) => { if (v) setSelectedProviderId(v) }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select provider" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {providers.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.name} ({p.modelName})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-              <Button
-                onClick={handleAnalyze}
-                disabled={analyzing || !selectedProviderId || totals.total === 0}
-              >
-                {analyzing ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="size-4" />
-                    Analyze Feedback
-                  </>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   )
 }
