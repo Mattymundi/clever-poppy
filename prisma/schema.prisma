@@ -19,6 +19,7 @@ model User {
 model Persona {
   id             String          @id @default(cuid())
   name           String
+  code           String          @default("")
   description    String?
   systemPrompt   String
   emotionalHooks String          @default("[]")
@@ -43,6 +44,8 @@ model AdType {
   useCalloutFacts     Boolean  @default(true)
   approvedExamples    String   @default("[]")
   qualityNotes        String?
+  sortOrder           Int      @default(0)
+  typeNumber          Int      @default(0)
   active              Boolean  @default(true)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
@@ -119,6 +122,12 @@ model AdFeedback {
   driveFileUrl    String?
   analyzed        Boolean  @default(false)
   createdAt       DateTime @default(now())
+}
+
+model SystemConfig {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }
 
 model GenerationRun {

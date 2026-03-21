@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
     const adTypes = await prisma.adType.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
     });
 
     return NextResponse.json(adTypes);
@@ -45,6 +45,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Auto-assign typeNumber and sortOrder
+    const maxType = await prisma.adType.aggregate({ _max: { typeNumber: true } });
+    const nextTypeNumber = Math.max((maxType._max.typeNumber ?? 100) + 1, 101);
+    const maxSort = await prisma.adType.aggregate({ _max: { sortOrder: true } });
+    const nextSortOrder = (maxSort._max.sortOrder ?? -1) + 1;
+
     const adType = await prisma.adType.create({
       data: {
         name,
@@ -55,6 +61,8 @@ export async function POST(request: NextRequest) {
         requiresQuote: requiresQuote ?? false,
         requiresBeforeAfter: requiresBeforeAfter ?? false,
         requiresComparison: requiresComparison ?? false,
+        typeNumber: nextTypeNumber,
+        sortOrder: nextSortOrder,
         active: active ?? true,
       },
     });

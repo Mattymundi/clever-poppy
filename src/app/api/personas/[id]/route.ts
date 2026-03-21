@@ -30,10 +30,11 @@ export async function PUT(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
     const body = await request.json();
-    const { name, description, systemPrompt, emotionalHooks, customerQuotes, toneNotes, active } = body;
+    const { name, code, description, systemPrompt, emotionalHooks, customerQuotes, toneNotes, active } = body;
 
     const data: Record<string, unknown> = {};
     if (name !== undefined) data.name = name;
+    if (code !== undefined) data.code = code;
     if (description !== undefined) data.description = description;
     if (systemPrompt !== undefined) data.systemPrompt = systemPrompt;
     if (emotionalHooks !== undefined) data.emotionalHooks = JSON.stringify(emotionalHooks);

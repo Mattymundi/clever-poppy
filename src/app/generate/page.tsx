@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
   SkipForward,
+  Settings2,
 } from "lucide-react"
 import { toast } from "sonner"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -63,6 +64,19 @@ interface AdType {
   category: string
   description: string
   active: boolean
+  requiresQuote: boolean
+  requiresBeforeAfter: boolean
+  requiresComparison: boolean
+  useCalloutFacts: boolean
+  sortOrder: number
+  typeNumber: number
+}
+
+interface AdTypeOverride {
+  requiresQuote: boolean
+  requiresBeforeAfter: boolean
+  requiresComparison: boolean
+  useCalloutFacts: boolean
 }
 
 interface ColorPalette {
@@ -131,6 +145,10 @@ export default function GeneratePage() {
 
   // ---- Ad types section collapse ----
   const [adTypesExpanded, setAdTypesExpanded] = useState(true)
+
+  // ---- Ad type overrides & reordering ----
+  const [adTypeOverrides, setAdTypeOverrides] = useState<Map<string, AdTypeOverride>>(new Map())
+  const [expandedOverrides, setExpandedOverrides] = useState<Set<string>>(new Set())
 
   // ---- Fetch all config data ----
   useEffect(() => {
@@ -260,6 +278,71 @@ export default function GeneratePage() {
     [adTypes]
   )
 
+  // ---- Ad type reordering ----
+  const swapAdTypes = useCallback(
+    async (index: number, direction: "up" | "down") => {
+      const targetIndex = direction === "up" ? index - 1 : index + 1
+      if (targetIndex < 0 || targetIndex >= adTypes.length) return
+
+      const newAdTypes = [...adTypes]
+      const temp = newAdTypes[index]
+      newAdTypes[index] = newAdTypes[targetIndex]
+      newAdTypes[targetIndex] = temp
+      setAdTypes(newAdTypes)
+
+      // Persist the new order
+      try {
+        await fetch("/api/ad-types/reorder", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderedIds: newAdTypes.map((a) => a.id) }),
+        })
+      } catch {
+        toast.error("Failed to save ad type order")
+      }
+    },
+    [adTypes]
+  )
+
+  // ---- Ad type override helpers ----
+  const getOverride = useCallback(
+    (adType: AdType): AdTypeOverride => {
+      return adTypeOverrides.get(adType.id) ?? {
+        requiresQuote: adType.requiresQuote,
+        requiresBeforeAfter: adType.requiresBeforeAfter,
+        requiresComparison: adType.requiresComparison,
+        useCalloutFacts: adType.useCalloutFacts,
+      }
+    },
+    [adTypeOverrides]
+  )
+
+  const setOverrideField = useCallback(
+    (adTypeId: string, adType: AdType, field: keyof AdTypeOverride, value: boolean) => {
+      setAdTypeOverrides((prev) => {
+        const next = new Map(prev)
+        const current = next.get(adTypeId) ?? {
+          requiresQuote: adType.requiresQuote,
+          requiresBeforeAfter: adType.requiresBeforeAfter,
+          requiresComparison: adType.requiresComparison,
+          useCalloutFacts: adType.useCalloutFacts,
+        }
+        next.set(adTypeId, { ...current, [field]: value })
+        return next
+      })
+    },
+    []
+  )
+
+  const toggleOverrideExpanded = useCallback((id: string) => {
+    setExpandedOverrides((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
+
   // ---- Generate ----
   const handleGenerate = async () => {
     if (!selectedPersonaId) {
@@ -314,6 +397,11 @@ export default function GeneratePage() {
           imageProviderId,
           offer: offer || undefined,
           forceOffer: forceOffer && !!offer,
+          adTypeOverrides: Object.fromEntries(
+            Array.from(selectedAdTypeIds)
+              .filter((id) => adTypeOverrides.has(id))
+              .map((id) => [id, adTypeOverrides.get(id)!])
+          ),
         }),
       })
 
@@ -740,31 +828,101 @@ export default function GeneratePage() {
                 </div>
 
                 {/* Ad types checklist */}
-                <div className="max-h-64 space-y-2 overflow-y-auto">
+                <div className="max-h-80 space-y-1 overflow-y-auto">
                   {filteredAdTypes.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
                       No ad types in this category.
                     </p>
                   ) : (
-                    filteredAdTypes.map((at) => (
-                      <label
-                        key={at.id}
-                        className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-muted/50"
-                      >
-                        <Checkbox
-                          checked={selectedAdTypeIds.has(at.id)}
-                          onCheckedChange={() => toggleAdType(at.id)}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium truncate">
-                            {at.name}
+                    filteredAdTypes.map((at) => {
+                      const globalIndex = adTypes.findIndex((a) => a.id === at.id)
+                      const isSelected = selectedAdTypeIds.has(at.id)
+                      const isOverrideOpen = expandedOverrides.has(at.id)
+                      const override = getOverride(at)
+
+                      return (
+                        <div key={at.id}>
+                          <div className="flex items-center gap-1 rounded-md px-1 py-1 transition-colors hover:bg-muted/50">
+                            {/* Reorder arrows */}
+                            <div className="flex flex-col shrink-0">
+                              <button
+                                type="button"
+                                onClick={(e) => { e.preventDefault(); swapAdTypes(globalIndex, "up") }}
+                                disabled={globalIndex === 0}
+                                className="rounded p-0.5 text-muted-foreground/40 transition-colors hover:text-foreground hover:bg-muted disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-muted-foreground/40"
+                              >
+                                <ChevronUp className="size-3" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => { e.preventDefault(); swapAdTypes(globalIndex, "down") }}
+                                disabled={globalIndex === adTypes.length - 1}
+                                className="rounded p-0.5 text-muted-foreground/40 transition-colors hover:text-foreground hover:bg-muted disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-muted-foreground/40"
+                              >
+                                <ChevronDown className="size-3" />
+                              </button>
+                            </div>
+
+                            {/* Checkbox */}
+                            <label className="flex cursor-pointer items-center gap-2 flex-1 min-w-0">
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={() => toggleAdType(at.id)}
+                              />
+                              <span className="text-sm font-medium truncate">{at.name}</span>
+                            </label>
+
+                            {/* Type number badge */}
+                            <span className="text-[10px] font-mono text-muted-foreground/50 shrink-0">
+                              #{at.typeNumber}
+                            </span>
+
+                            {/* Category badge */}
+                            <Badge variant="secondary" className="text-xs shrink-0">
+                              {at.category}
+                            </Badge>
+
+                            {/* Override toggle */}
+                            {isSelected && (
+                              <button
+                                type="button"
+                                onClick={(e) => { e.preventDefault(); toggleOverrideExpanded(at.id) }}
+                                className={`rounded p-1 transition-colors ${
+                                  isOverrideOpen
+                                    ? "text-foreground bg-muted"
+                                    : "text-muted-foreground/40 hover:text-foreground hover:bg-muted"
+                                }`}
+                                title="Requirement overrides"
+                              >
+                                <Settings2 className="size-3" />
+                              </button>
+                            )}
                           </div>
+
+                          {/* Expandable override row */}
+                          {isSelected && isOverrideOpen && (
+                            <div className="ml-8 mr-2 mb-1 flex flex-wrap gap-x-4 gap-y-1.5 rounded-md bg-muted/30 px-3 py-2">
+                              {([
+                                { key: "requiresQuote" as const, label: "Requires Quote" },
+                                { key: "requiresBeforeAfter" as const, label: "Requires Before/After" },
+                                { key: "requiresComparison" as const, label: "Requires Comparison" },
+                                { key: "useCalloutFacts" as const, label: "Use Callout Facts" },
+                              ] as const).map(({ key, label }) => (
+                                <label key={key} className="flex items-center gap-1.5 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={override[key]}
+                                    onChange={(e) => setOverrideField(at.id, at, key, e.target.checked)}
+                                    className="rounded border-border size-3"
+                                  />
+                                  <span className="text-[11px] text-muted-foreground">{label}</span>
+                                </label>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                        <Badge variant="secondary" className="text-xs shrink-0">
-                          {at.category}
-                        </Badge>
-                      </label>
-                    ))
+                      )
+                    })
                   )}
                 </div>
               </CardContent>

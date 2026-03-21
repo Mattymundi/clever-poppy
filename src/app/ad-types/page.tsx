@@ -12,6 +12,8 @@ import {
   Quote,
   ArrowLeftRight,
   ImageIcon,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -33,6 +35,8 @@ interface AdType {
   requiresBeforeAfter: boolean;
   requiresComparison: boolean;
   active: boolean;
+  typeNumber: number | null;
+  sortOrder: number;
 }
 
 const CATEGORIES = [
@@ -147,6 +151,31 @@ export default function AdTypesPage() {
     }
   }
 
+  // ── Reorder ──────────────────────────────────────────────────────────
+
+  async function moveAdType(id: string, direction: "up" | "down") {
+    const index = adTypes.findIndex((t) => t.id === id);
+    if (index < 0) return;
+    const swapIndex = direction === "up" ? index - 1 : index + 1;
+    if (swapIndex < 0 || swapIndex >= adTypes.length) return;
+
+    const reordered = [...adTypes];
+    [reordered[index], reordered[swapIndex]] = [reordered[swapIndex], reordered[index]];
+    setAdTypes(reordered);
+
+    try {
+      const res = await fetch("/api/ad-types/reorder", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderedIds: reordered.map((t) => t.id) }),
+      });
+      if (!res.ok) throw new Error("Failed to reorder");
+    } catch {
+      toast.error("Failed to reorder ad types");
+      setAdTypes(adTypes); // revert
+    }
+  }
+
   // ── Loading skeleton ───────────────────────────────────────────────────
 
   if (loading) {
@@ -257,9 +286,16 @@ export default function AdTypesPage() {
             >
               {/* Top row: name + category */}
               <div className="flex items-start justify-between gap-2">
-                <h3 className="truncate text-sm font-medium leading-snug">
-                  {adType.name}
-                </h3>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  {adType.typeNumber != null && (
+                    <span className="shrink-0 text-[10px] font-mono text-muted-foreground/70">
+                      #{adType.typeNumber}
+                    </span>
+                  )}
+                  <h3 className="truncate text-sm font-medium leading-snug">
+                    {adType.name}
+                  </h3>
+                </div>
                 <Badge
                   variant="secondary"
                   className={`shrink-0 font-normal text-xs ${
@@ -313,6 +349,22 @@ export default function AdTypesPage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => moveAdType(adType.id, "up")}
+                    disabled={adTypes.indexOf(adType) === 0}
+                  >
+                    <ChevronUp />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => moveAdType(adType.id, "down")}
+                    disabled={adTypes.indexOf(adType) === adTypes.length - 1}
+                  >
+                    <ChevronDown />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon-sm"

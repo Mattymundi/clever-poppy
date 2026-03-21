@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
@@ -29,10 +29,6 @@ interface AdTypeData {
   description: string;
   imagePromptTemplate: string;
   exampleDescription: string;
-  requiresQuote: boolean;
-  requiresBeforeAfter: boolean;
-  requiresComparison: boolean;
-  useCalloutFacts: boolean;
   active: boolean;
 }
 
@@ -50,10 +46,6 @@ const emptyAdType: AdTypeData = {
   description: "",
   imagePromptTemplate: "",
   exampleDescription: "",
-  requiresQuote: false,
-  requiresBeforeAfter: false,
-  requiresComparison: false,
-  useCalloutFacts: true,
   active: true,
 };
 
@@ -81,10 +73,6 @@ export default function AdTypeEditPage() {
         description: data.description ?? "",
         imagePromptTemplate: data.imagePromptTemplate ?? "",
         exampleDescription: data.exampleDescription ?? "",
-        requiresQuote: data.requiresQuote ?? false,
-        requiresBeforeAfter: data.requiresBeforeAfter ?? false,
-        requiresComparison: data.requiresComparison ?? false,
-        useCalloutFacts: data.useCalloutFacts ?? true,
         active: data.active,
       });
     } catch {
@@ -130,10 +118,6 @@ export default function AdTypeEditPage() {
         description: adType.description,
         imagePromptTemplate: adType.imagePromptTemplate || null,
         exampleDescription: adType.exampleDescription || null,
-        requiresQuote: adType.requiresQuote,
-        requiresBeforeAfter: adType.requiresBeforeAfter,
-        requiresComparison: adType.requiresComparison,
-        useCalloutFacts: adType.useCalloutFacts,
         active: adType.active,
       };
 
@@ -343,63 +327,6 @@ export default function AdTypeEditPage() {
           <p className="text-right text-xs text-muted-foreground">
             {adType.exampleDescription.length.toLocaleString()} characters
           </p>
-        </div>
-      </section>
-
-      <hr className="border-border/40" />
-
-      {/* Requirements */}
-      <section className="space-y-5">
-        <div>
-          <h2 className="text-base font-semibold">Requirements</h2>
-          <p className="text-sm text-muted-foreground">
-            Specify what additional content this ad type needs.
-          </p>
-        </div>
-
-        <div className="space-y-3">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <Checkbox
-              checked={adType.requiresQuote}
-              onCheckedChange={(checked) =>
-                updateField("requiresQuote", checked as boolean)
-              }
-            />
-            <span className="text-sm font-medium">Requires Quote</span>
-          </label>
-
-          <label className="flex items-center gap-3 cursor-pointer">
-            <Checkbox
-              checked={adType.requiresBeforeAfter}
-              onCheckedChange={(checked) =>
-                updateField("requiresBeforeAfter", checked as boolean)
-              }
-            />
-            <span className="text-sm font-medium">Requires Before/After</span>
-          </label>
-
-          <label className="flex items-center gap-3 cursor-pointer">
-            <Checkbox
-              checked={adType.requiresComparison}
-              onCheckedChange={(checked) =>
-                updateField("requiresComparison", checked as boolean)
-              }
-            />
-            <span className="text-sm font-medium">Requires Comparison</span>
-          </label>
-
-          <label className="flex items-center gap-3 cursor-pointer">
-            <Checkbox
-              checked={adType.useCalloutFacts}
-              onCheckedChange={(checked) =>
-                updateField("useCalloutFacts", checked as boolean)
-              }
-            />
-            <div>
-              <span className="text-sm font-medium">Use Callout Facts</span>
-              <p className="text-xs text-muted-foreground">Include callout fact badges/starburst elements in this ad type</p>
-            </div>
-          </label>
         </div>
       </section>
 

@@ -31,7 +31,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     const fields = [
       "name", "category", "description", "imagePromptTemplate",
       "exampleDescription", "requiresQuote", "requiresBeforeAfter",
-      "requiresComparison", "active",
+      "requiresComparison", "useCalloutFacts", "sortOrder", "typeNumber", "active",
     ] as const;
 
     for (const field of fields) {

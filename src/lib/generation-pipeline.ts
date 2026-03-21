@@ -4,6 +4,13 @@ import { buildSystemPrompt } from "@/lib/prompt-builder";
 import { getImageDimensions } from "@/lib/ai/types";
 import { createDriveFolder, uploadFileToDrive, formatRunFolderName } from "@/lib/google-drive";
 
+interface AdTypeOverrides {
+  requiresQuote?: boolean;
+  requiresBeforeAfter?: boolean;
+  requiresComparison?: boolean;
+  useCalloutFacts?: boolean;
+}
+
 interface GenerationConfig {
   personaId: string;
   imageLibraryIds: string[];
@@ -16,6 +23,7 @@ interface GenerationConfig {
   driveFolderUrl?: string;
   offer?: string;
   forceOffer?: boolean;
+  adTypeOverrides?: Record<string, AdTypeOverrides>;
 }
 
 export async function runGenerationPipeline(runId: string, config: GenerationConfig) {
@@ -39,6 +47,31 @@ export async function runGenerationPipeline(runId: string, config: GenerationCon
         prisma.aiProvider.findUniqueOrThrow({ where: { id: config.imageProviderId } }),
         prisma.calloutFact.findMany({ where: { active: true }, orderBy: { sortOrder: "asc" } }),
       ]);
+
+    // Pre-allocate image sequence numbers from SystemConfig
+    let sequenceStart = 1;
+    try {
+      const seqConfig = await prisma.systemConfig.findUnique({
+        where: { key: "next_image_sequence" },
+      });
+      sequenceStart = seqConfig ? parseInt(seqConfig.value, 10) : 1;
+      if (isNaN(sequenceStart) || sequenceStart < 1) sequenceStart = 1;
+      // Reserve the range by incrementing past the ads we'll generate
+      await prisma.systemConfig.upsert({
+        where: { key: "next_image_sequence" },
+        update: { value: String(sequenceStart + config.adCount) },
+        create: { key: "next_image_sequence", value: String(sequenceStart + config.adCount) },
+      });
+    } catch (seqErr) {
+      console.warn("Failed to read/update image sequence, starting from 1:", seqErr);
+    }
+
+    // Build ad type lookup by name (lowercase) for filename generation
+    const adTypeLookup = new Map<string, { typeNumber: number }>();
+    for (const t of adTypes) {
+      const key = t.name.toLowerCase().replace(/[^a-zA-Z0-9]/g, "-");
+      adTypeLookup.set(key, { typeNumber: t.typeNumber ?? 0 });
+    }
 
     // Create a Google Drive subfolder for this run
     const rootFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
@@ -77,22 +110,26 @@ export async function runGenerationPipeline(runId: string, config: GenerationCon
     }
     const kitNames = Array.from(kitNameSet);
 
-    // Build system prompt
+    // Build system prompt (apply ad type overrides if provided)
+    const overrides = config.adTypeOverrides || {};
     const systemPrompt = buildSystemPrompt({
       basePrompt: persona.systemPrompt,
-      adTypes: adTypes.map((t) => ({
-        name: t.name,
-        category: t.category,
-        description: t.description,
-        imagePromptTemplate: t.imagePromptTemplate || undefined,
-        exampleDescription: t.exampleDescription || undefined,
-        requiresQuote: t.requiresQuote,
-        requiresBeforeAfter: t.requiresBeforeAfter,
-        requiresComparison: t.requiresComparison,
-        useCalloutFacts: t.useCalloutFacts,
-        qualityNotes: t.qualityNotes || undefined,
-        approvedExamples: t.approvedExamples ? JSON.parse(t.approvedExamples) : undefined,
-      })),
+      adTypes: adTypes.map((t) => {
+        const o = overrides[t.id] || {};
+        return {
+          name: t.name,
+          category: t.category,
+          description: t.description,
+          imagePromptTemplate: t.imagePromptTemplate || undefined,
+          exampleDescription: t.exampleDescription || undefined,
+          requiresQuote: o.requiresQuote ?? t.requiresQuote,
+          requiresBeforeAfter: o.requiresBeforeAfter ?? t.requiresBeforeAfter,
+          requiresComparison: o.requiresComparison ?? t.requiresComparison,
+          useCalloutFacts: o.useCalloutFacts ?? t.useCalloutFacts,
+          qualityNotes: t.qualityNotes || undefined,
+          approvedExamples: t.approvedExamples ? JSON.parse(t.approvedExamples) : undefined,
+        };
+      }),
       colors: colors.map((c) => ({ name: c.name, hex: c.hex })),
       images: allImages,
       emotionalHooks,
@@ -157,8 +194,11 @@ export async function runGenerationPipeline(runId: string, config: GenerationCon
                 // Upload to Google Drive
                 if (driveFolderId) {
                   try {
-                    const adTypeName = (adCopy.ad_type || "ad").replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
-                    const filename = `${String(adIndex + 1).padStart(3, "0")}-${adTypeName}.png`;
+                    const adTypeKey = (adCopy.ad_type || "ad").replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
+                    const seqNum = String(sequenceStart + adIndex).padStart(6, "0");
+                    const typeNum = String(adTypeLookup.get(adTypeKey)?.typeNumber ?? 0).padStart(3, "0");
+                    const personaCode = (persona.code || "UNK").toUpperCase().padEnd(3, "X").slice(0, 3);
+                    const filename = `GIMG_${seqNum}_${typeNum}_${personaCode}.png`;
                     const uploaded = await uploadFileToDrive(filename, result, driveFolderId);
                     driveFileUrl = uploaded.webViewLink;
                     console.log(`Uploaded ad ${adIndex} → ${driveFileUrl}`);
@@ -235,6 +275,38 @@ export async function runGenerationPipeline(runId: string, config: GenerationCon
     });
 
     console.log(`Generation run ${runId} complete: ${successCount} success, ${failCount} failed.${driveFolderUrl ? ` Drive folder: ${driveFolderUrl}` : ""}`);
+
+    // Log to Google Sheets (non-blocking)
+    try {
+      const { appendToLogSheet } = await import("@/lib/google-sheets");
+      const adTypeMap = new Map(adTypes.map((t) => [t.name, t]));
+      const personaCode = (persona.code || "UNK").toUpperCase().padEnd(3, "X").slice(0, 3);
+
+      const logRows = ads.map((ad: any, i: number) => {
+        const matchedType = adTypeMap.get(ad.ad_type) || adTypes[0];
+        return {
+          timestamp: new Date().toISOString(),
+          runId,
+          fileName: ad.generated_image ? `GIMG_${String(sequenceStart + i).padStart(6, "0")}_${String(matchedType?.typeNumber || 0).padStart(3, "0")}_${personaCode}.png` : "",
+          sequence: sequenceStart + i,
+          adTypeName: ad.ad_type || "",
+          typeNumber: matchedType?.typeNumber || 0,
+          personaName: persona.name,
+          personaCode,
+          category: matchedType?.category || "",
+          imageRatio: config.imageRatio || "1:1",
+          headline: ad.headline || "",
+          cta: ad.cta || "",
+          status: ad.status || "unknown",
+          driveFileUrl: ad.generated_image || "",
+          driveFolderUrl: driveFolderUrl || "",
+        };
+      });
+
+      await appendToLogSheet(logRows);
+    } catch (sheetErr: any) {
+      console.error("Google Sheet logging failed (non-critical):", sheetErr.message);
+    }
   } catch (err: any) {
     console.error("Generation pipeline failed:", err);
     const elapsed = Math.round((Date.now() - startTime) / 1000);

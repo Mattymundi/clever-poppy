@@ -36,6 +36,7 @@ interface CustomerQuote {
 interface PersonaData {
   id?: string;
   name: string;
+  code: string;
   description: string;
   systemPrompt: string;
   emotionalHooks: EmotionalHook[];
@@ -46,6 +47,7 @@ interface PersonaData {
 
 const emptyPersona: PersonaData = {
   name: "",
+  code: "",
   description: "",
   systemPrompt: "",
   emotionalHooks: [],
@@ -74,6 +76,7 @@ export default function PersonaEditPage() {
       setPersona({
         id: data.id,
         name: data.name,
+        code: data.code ?? "",
         description: data.description ?? "",
         systemPrompt: data.systemPrompt,
         emotionalHooks: data.emotionalHooks ?? [],
@@ -166,6 +169,7 @@ export default function PersonaEditPage() {
     try {
       const body = {
         name: persona.name,
+        code: persona.code.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 3),
         description: persona.description || null,
         systemPrompt: persona.systemPrompt,
         emotionalHooks: persona.emotionalHooks.filter(
@@ -268,6 +272,24 @@ export default function PersonaEditPage() {
               value={persona.name}
               onChange={(e) => updateField("name", e.target.value)}
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="code" className="text-sm font-medium">
+              Code (3 letters)
+            </Label>
+            <Input
+              id="code"
+              placeholder="e.g. DAP"
+              maxLength={3}
+              className="w-24 uppercase"
+              value={persona.code}
+              onChange={(e) =>
+                updateField("code", e.target.value.toUpperCase().replace(/[^A-Z]/g, ""))
+              }
+            />
+            <p className="text-xs text-muted-foreground">
+              Used in file naming (GIMG_XXXXXX_AAA_BBB)
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="description" className="text-sm font-medium">

@@ -60,6 +60,7 @@ export const ModelName = {
   CalloutFact: 'CalloutFact',
   CalloutFactSource: 'CalloutFactSource',
   AdFeedback: 'AdFeedback',
+  SystemConfig: 'SystemConfig',
   GenerationRun: 'GenerationRun'
 } as const
 
@@ -91,6 +92,7 @@ export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof User
 export const PersonaScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  code: 'code',
   description: 'description',
   systemPrompt: 'systemPrompt',
   emotionalHooks: 'emotionalHooks',
@@ -117,6 +119,8 @@ export const AdTypeScalarFieldEnum = {
   useCalloutFacts: 'useCalloutFacts',
   approvedExamples: 'approvedExamples',
   qualityNotes: 'qualityNotes',
+  sortOrder: 'sortOrder',
+  typeNumber: 'typeNumber',
   active: 'active',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -209,10 +213,20 @@ export const AdFeedbackScalarFieldEnum = {
   discardReason: 'discardReason',
   notes: 'notes',
   driveFileUrl: 'driveFileUrl',
+  analyzed: 'analyzed',
   createdAt: 'createdAt'
 } as const
 
 export type AdFeedbackScalarFieldEnum = (typeof AdFeedbackScalarFieldEnum)[keyof typeof AdFeedbackScalarFieldEnum]
+
+
+export const SystemConfigScalarFieldEnum = {
+  key: 'key',
+  value: 'value',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SystemConfigScalarFieldEnum = (typeof SystemConfigScalarFieldEnum)[keyof typeof SystemConfigScalarFieldEnum]
 
 
 export const GenerationRunScalarFieldEnum = {

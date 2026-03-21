@@ -393,6 +393,7 @@ export const ModelName = {
   CalloutFact: 'CalloutFact',
   CalloutFactSource: 'CalloutFactSource',
   AdFeedback: 'AdFeedback',
+  SystemConfig: 'SystemConfig',
   GenerationRun: 'GenerationRun'
 } as const
 
@@ -409,7 +410,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "persona" | "adType" | "imageLibrary" | "aiProvider" | "colorPalette" | "calloutFact" | "calloutFactSource" | "adFeedback" | "generationRun"
+    modelProps: "user" | "persona" | "adType" | "imageLibrary" | "aiProvider" | "colorPalette" | "calloutFact" | "calloutFactSource" | "adFeedback" | "systemConfig" | "generationRun"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1079,6 +1080,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SystemConfig: {
+      payload: Prisma.$SystemConfigPayload<ExtArgs>
+      fields: Prisma.SystemConfigFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SystemConfigFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemConfigPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SystemConfigFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemConfigPayload>
+        }
+        findFirst: {
+          args: Prisma.SystemConfigFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemConfigPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SystemConfigFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemConfigPayload>
+        }
+        findMany: {
+          args: Prisma.SystemConfigFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemConfigPayload>[]
+        }
+        create: {
+          args: Prisma.SystemConfigCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemConfigPayload>
+        }
+        createMany: {
+          args: Prisma.SystemConfigCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SystemConfigCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemConfigPayload>[]
+        }
+        delete: {
+          args: Prisma.SystemConfigDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemConfigPayload>
+        }
+        update: {
+          args: Prisma.SystemConfigUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemConfigPayload>
+        }
+        deleteMany: {
+          args: Prisma.SystemConfigDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SystemConfigUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SystemConfigUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemConfigPayload>[]
+        }
+        upsert: {
+          args: Prisma.SystemConfigUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemConfigPayload>
+        }
+        aggregate: {
+          args: Prisma.SystemConfigAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSystemConfig>
+        }
+        groupBy: {
+          args: Prisma.SystemConfigGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SystemConfigGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SystemConfigCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SystemConfigCountAggregateOutputType> | number
+        }
+      }
+    }
     GenerationRun: {
       payload: Prisma.$GenerationRunPayload<ExtArgs>
       fields: Prisma.GenerationRunFieldRefs
@@ -1204,6 +1279,7 @@ export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof User
 export const PersonaScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  code: 'code',
   description: 'description',
   systemPrompt: 'systemPrompt',
   emotionalHooks: 'emotionalHooks',
@@ -1230,6 +1306,8 @@ export const AdTypeScalarFieldEnum = {
   useCalloutFacts: 'useCalloutFacts',
   approvedExamples: 'approvedExamples',
   qualityNotes: 'qualityNotes',
+  sortOrder: 'sortOrder',
+  typeNumber: 'typeNumber',
   active: 'active',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -1322,10 +1400,20 @@ export const AdFeedbackScalarFieldEnum = {
   discardReason: 'discardReason',
   notes: 'notes',
   driveFileUrl: 'driveFileUrl',
+  analyzed: 'analyzed',
   createdAt: 'createdAt'
 } as const
 
 export type AdFeedbackScalarFieldEnum = (typeof AdFeedbackScalarFieldEnum)[keyof typeof AdFeedbackScalarFieldEnum]
+
+
+export const SystemConfigScalarFieldEnum = {
+  key: 'key',
+  value: 'value',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SystemConfigScalarFieldEnum = (typeof SystemConfigScalarFieldEnum)[keyof typeof SystemConfigScalarFieldEnum]
 
 
 export const GenerationRunScalarFieldEnum = {
@@ -1507,6 +1595,7 @@ export type GlobalOmitConfig = {
   calloutFact?: Prisma.CalloutFactOmit
   calloutFactSource?: Prisma.CalloutFactSourceOmit
   adFeedback?: Prisma.AdFeedbackOmit
+  systemConfig?: Prisma.SystemConfigOmit
   generationRun?: Prisma.GenerationRunOmit
 }
 

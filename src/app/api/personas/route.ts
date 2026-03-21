@@ -26,7 +26,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, description, systemPrompt, emotionalHooks, customerQuotes, toneNotes, active } = body;
+    const { name, code, description, systemPrompt, emotionalHooks, customerQuotes, toneNotes, active } = body;
 
     if (!name || !systemPrompt) {
       return NextResponse.json(
@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
     const persona = await prisma.persona.create({
       data: {
         name,
+        code: code ?? "",
         description: description ?? null,
         systemPrompt,
         emotionalHooks: JSON.stringify(emotionalHooks ?? []),

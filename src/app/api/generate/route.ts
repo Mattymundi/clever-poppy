@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
       driveFolderUrl,
       offer,
       forceOffer,
+      adTypeOverrides,
     } = body;
 
     if (!personaId || !adCount || !imageRatio) {
@@ -44,6 +45,7 @@ export async function POST(request: NextRequest) {
       driveFolderUrl: driveFolderUrl || "",
       offer: offer || "",
       forceOffer: !!forceOffer,
+      adTypeOverrides: adTypeOverrides || undefined,
     };
 
     const run = await prisma.generationRun.create({

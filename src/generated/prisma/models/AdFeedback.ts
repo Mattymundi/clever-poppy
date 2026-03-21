@@ -51,6 +51,7 @@ export type AdFeedbackMinAggregateOutputType = {
   discardReason: string | null
   notes: string | null
   driveFileUrl: string | null
+  analyzed: boolean | null
   createdAt: Date | null
 }
 
@@ -71,6 +72,7 @@ export type AdFeedbackMaxAggregateOutputType = {
   discardReason: string | null
   notes: string | null
   driveFileUrl: string | null
+  analyzed: boolean | null
   createdAt: Date | null
 }
 
@@ -91,6 +93,7 @@ export type AdFeedbackCountAggregateOutputType = {
   discardReason: number
   notes: number
   driveFileUrl: number
+  analyzed: number
   createdAt: number
   _all: number
 }
@@ -121,6 +124,7 @@ export type AdFeedbackMinAggregateInputType = {
   discardReason?: true
   notes?: true
   driveFileUrl?: true
+  analyzed?: true
   createdAt?: true
 }
 
@@ -141,6 +145,7 @@ export type AdFeedbackMaxAggregateInputType = {
   discardReason?: true
   notes?: true
   driveFileUrl?: true
+  analyzed?: true
   createdAt?: true
 }
 
@@ -161,6 +166,7 @@ export type AdFeedbackCountAggregateInputType = {
   discardReason?: true
   notes?: true
   driveFileUrl?: true
+  analyzed?: true
   createdAt?: true
   _all?: true
 }
@@ -268,6 +274,7 @@ export type AdFeedbackGroupByOutputType = {
   discardReason: string | null
   notes: string | null
   driveFileUrl: string | null
+  analyzed: boolean
   createdAt: Date
   _count: AdFeedbackCountAggregateOutputType | null
   _avg: AdFeedbackAvgAggregateOutputType | null
@@ -311,6 +318,7 @@ export type AdFeedbackWhereInput = {
   discardReason?: Prisma.StringNullableFilter<"AdFeedback"> | string | null
   notes?: Prisma.StringNullableFilter<"AdFeedback"> | string | null
   driveFileUrl?: Prisma.StringNullableFilter<"AdFeedback"> | string | null
+  analyzed?: Prisma.BoolFilter<"AdFeedback"> | boolean
   createdAt?: Prisma.DateTimeFilter<"AdFeedback"> | Date | string
 }
 
@@ -331,6 +339,7 @@ export type AdFeedbackOrderByWithRelationInput = {
   discardReason?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   driveFileUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  analyzed?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -354,6 +363,7 @@ export type AdFeedbackWhereUniqueInput = Prisma.AtLeast<{
   discardReason?: Prisma.StringNullableFilter<"AdFeedback"> | string | null
   notes?: Prisma.StringNullableFilter<"AdFeedback"> | string | null
   driveFileUrl?: Prisma.StringNullableFilter<"AdFeedback"> | string | null
+  analyzed?: Prisma.BoolFilter<"AdFeedback"> | boolean
   createdAt?: Prisma.DateTimeFilter<"AdFeedback"> | Date | string
 }, "id">
 
@@ -374,6 +384,7 @@ export type AdFeedbackOrderByWithAggregationInput = {
   discardReason?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   driveFileUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  analyzed?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.AdFeedbackCountOrderByAggregateInput
   _avg?: Prisma.AdFeedbackAvgOrderByAggregateInput
@@ -402,6 +413,7 @@ export type AdFeedbackScalarWhereWithAggregatesInput = {
   discardReason?: Prisma.StringNullableWithAggregatesFilter<"AdFeedback"> | string | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"AdFeedback"> | string | null
   driveFileUrl?: Prisma.StringNullableWithAggregatesFilter<"AdFeedback"> | string | null
+  analyzed?: Prisma.BoolWithAggregatesFilter<"AdFeedback"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AdFeedback"> | Date | string
 }
 
@@ -422,6 +434,7 @@ export type AdFeedbackCreateInput = {
   discardReason?: string | null
   notes?: string | null
   driveFileUrl?: string | null
+  analyzed?: boolean
   createdAt?: Date | string
 }
 
@@ -442,6 +455,7 @@ export type AdFeedbackUncheckedCreateInput = {
   discardReason?: string | null
   notes?: string | null
   driveFileUrl?: string | null
+  analyzed?: boolean
   createdAt?: Date | string
 }
 
@@ -462,6 +476,7 @@ export type AdFeedbackUpdateInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   driveFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  analyzed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -482,6 +497,7 @@ export type AdFeedbackUncheckedUpdateInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   driveFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  analyzed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -502,6 +518,7 @@ export type AdFeedbackCreateManyInput = {
   discardReason?: string | null
   notes?: string | null
   driveFileUrl?: string | null
+  analyzed?: boolean
   createdAt?: Date | string
 }
 
@@ -522,6 +539,7 @@ export type AdFeedbackUpdateManyMutationInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   driveFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  analyzed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -542,6 +560,7 @@ export type AdFeedbackUncheckedUpdateManyInput = {
   discardReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   driveFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  analyzed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -562,6 +581,7 @@ export type AdFeedbackCountOrderByAggregateInput = {
   discardReason?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   driveFileUrl?: Prisma.SortOrder
+  analyzed?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -586,6 +606,7 @@ export type AdFeedbackMaxOrderByAggregateInput = {
   discardReason?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   driveFileUrl?: Prisma.SortOrder
+  analyzed?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -606,6 +627,7 @@ export type AdFeedbackMinOrderByAggregateInput = {
   discardReason?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   driveFileUrl?: Prisma.SortOrder
+  analyzed?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -632,6 +654,7 @@ export type AdFeedbackSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   discardReason?: boolean
   notes?: boolean
   driveFileUrl?: boolean
+  analyzed?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["adFeedback"]>
 
@@ -652,6 +675,7 @@ export type AdFeedbackSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   discardReason?: boolean
   notes?: boolean
   driveFileUrl?: boolean
+  analyzed?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["adFeedback"]>
 
@@ -672,6 +696,7 @@ export type AdFeedbackSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   discardReason?: boolean
   notes?: boolean
   driveFileUrl?: boolean
+  analyzed?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["adFeedback"]>
 
@@ -692,10 +717,11 @@ export type AdFeedbackSelectScalar = {
   discardReason?: boolean
   notes?: boolean
   driveFileUrl?: boolean
+  analyzed?: boolean
   createdAt?: boolean
 }
 
-export type AdFeedbackOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "runId" | "adIndex" | "adTypeName" | "adTypeId" | "personaId" | "headline" | "subheadline" | "bodyCopy" | "cta" | "imagePrompt" | "backgroundColor" | "decision" | "discardReason" | "notes" | "driveFileUrl" | "createdAt", ExtArgs["result"]["adFeedback"]>
+export type AdFeedbackOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "runId" | "adIndex" | "adTypeName" | "adTypeId" | "personaId" | "headline" | "subheadline" | "bodyCopy" | "cta" | "imagePrompt" | "backgroundColor" | "decision" | "discardReason" | "notes" | "driveFileUrl" | "analyzed" | "createdAt", ExtArgs["result"]["adFeedback"]>
 
 export type $AdFeedbackPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "AdFeedback"
@@ -717,6 +743,7 @@ export type $AdFeedbackPayload<ExtArgs extends runtime.Types.Extensions.Internal
     discardReason: string | null
     notes: string | null
     driveFileUrl: string | null
+    analyzed: boolean
     createdAt: Date
   }, ExtArgs["result"]["adFeedback"]>
   composites: {}
@@ -1157,6 +1184,7 @@ export interface AdFeedbackFieldRefs {
   readonly discardReason: Prisma.FieldRef<"AdFeedback", 'String'>
   readonly notes: Prisma.FieldRef<"AdFeedback", 'String'>
   readonly driveFileUrl: Prisma.FieldRef<"AdFeedback", 'String'>
+  readonly analyzed: Prisma.FieldRef<"AdFeedback", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"AdFeedback", 'DateTime'>
 }
     

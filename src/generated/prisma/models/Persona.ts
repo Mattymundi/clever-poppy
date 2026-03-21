@@ -27,6 +27,7 @@ export type AggregatePersona = {
 export type PersonaMinAggregateOutputType = {
   id: string | null
   name: string | null
+  code: string | null
   description: string | null
   systemPrompt: string | null
   emotionalHooks: string | null
@@ -40,6 +41,7 @@ export type PersonaMinAggregateOutputType = {
 export type PersonaMaxAggregateOutputType = {
   id: string | null
   name: string | null
+  code: string | null
   description: string | null
   systemPrompt: string | null
   emotionalHooks: string | null
@@ -53,6 +55,7 @@ export type PersonaMaxAggregateOutputType = {
 export type PersonaCountAggregateOutputType = {
   id: number
   name: number
+  code: number
   description: number
   systemPrompt: number
   emotionalHooks: number
@@ -68,6 +71,7 @@ export type PersonaCountAggregateOutputType = {
 export type PersonaMinAggregateInputType = {
   id?: true
   name?: true
+  code?: true
   description?: true
   systemPrompt?: true
   emotionalHooks?: true
@@ -81,6 +85,7 @@ export type PersonaMinAggregateInputType = {
 export type PersonaMaxAggregateInputType = {
   id?: true
   name?: true
+  code?: true
   description?: true
   systemPrompt?: true
   emotionalHooks?: true
@@ -94,6 +99,7 @@ export type PersonaMaxAggregateInputType = {
 export type PersonaCountAggregateInputType = {
   id?: true
   name?: true
+  code?: true
   description?: true
   systemPrompt?: true
   emotionalHooks?: true
@@ -180,6 +186,7 @@ export type PersonaGroupByArgs<ExtArgs extends runtime.Types.Extensions.Internal
 export type PersonaGroupByOutputType = {
   id: string
   name: string
+  code: string
   description: string | null
   systemPrompt: string
   emotionalHooks: string
@@ -214,6 +221,7 @@ export type PersonaWhereInput = {
   NOT?: Prisma.PersonaWhereInput | Prisma.PersonaWhereInput[]
   id?: Prisma.StringFilter<"Persona"> | string
   name?: Prisma.StringFilter<"Persona"> | string
+  code?: Prisma.StringFilter<"Persona"> | string
   description?: Prisma.StringNullableFilter<"Persona"> | string | null
   systemPrompt?: Prisma.StringFilter<"Persona"> | string
   emotionalHooks?: Prisma.StringFilter<"Persona"> | string
@@ -228,6 +236,7 @@ export type PersonaWhereInput = {
 export type PersonaOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  code?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   systemPrompt?: Prisma.SortOrder
   emotionalHooks?: Prisma.SortOrder
@@ -245,6 +254,7 @@ export type PersonaWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.PersonaWhereInput[]
   NOT?: Prisma.PersonaWhereInput | Prisma.PersonaWhereInput[]
   name?: Prisma.StringFilter<"Persona"> | string
+  code?: Prisma.StringFilter<"Persona"> | string
   description?: Prisma.StringNullableFilter<"Persona"> | string | null
   systemPrompt?: Prisma.StringFilter<"Persona"> | string
   emotionalHooks?: Prisma.StringFilter<"Persona"> | string
@@ -259,6 +269,7 @@ export type PersonaWhereUniqueInput = Prisma.AtLeast<{
 export type PersonaOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  code?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   systemPrompt?: Prisma.SortOrder
   emotionalHooks?: Prisma.SortOrder
@@ -278,6 +289,7 @@ export type PersonaScalarWhereWithAggregatesInput = {
   NOT?: Prisma.PersonaScalarWhereWithAggregatesInput | Prisma.PersonaScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Persona"> | string
   name?: Prisma.StringWithAggregatesFilter<"Persona"> | string
+  code?: Prisma.StringWithAggregatesFilter<"Persona"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Persona"> | string | null
   systemPrompt?: Prisma.StringWithAggregatesFilter<"Persona"> | string
   emotionalHooks?: Prisma.StringWithAggregatesFilter<"Persona"> | string
@@ -291,6 +303,7 @@ export type PersonaScalarWhereWithAggregatesInput = {
 export type PersonaCreateInput = {
   id?: string
   name: string
+  code?: string
   description?: string | null
   systemPrompt: string
   emotionalHooks?: string
@@ -305,6 +318,7 @@ export type PersonaCreateInput = {
 export type PersonaUncheckedCreateInput = {
   id?: string
   name: string
+  code?: string
   description?: string | null
   systemPrompt: string
   emotionalHooks?: string
@@ -319,6 +333,7 @@ export type PersonaUncheckedCreateInput = {
 export type PersonaUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemPrompt?: Prisma.StringFieldUpdateOperationsInput | string
   emotionalHooks?: Prisma.StringFieldUpdateOperationsInput | string
@@ -333,6 +348,7 @@ export type PersonaUpdateInput = {
 export type PersonaUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemPrompt?: Prisma.StringFieldUpdateOperationsInput | string
   emotionalHooks?: Prisma.StringFieldUpdateOperationsInput | string
@@ -347,6 +363,7 @@ export type PersonaUncheckedUpdateInput = {
 export type PersonaCreateManyInput = {
   id?: string
   name: string
+  code?: string
   description?: string | null
   systemPrompt: string
   emotionalHooks?: string
@@ -360,6 +377,7 @@ export type PersonaCreateManyInput = {
 export type PersonaUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemPrompt?: Prisma.StringFieldUpdateOperationsInput | string
   emotionalHooks?: Prisma.StringFieldUpdateOperationsInput | string
@@ -373,6 +391,7 @@ export type PersonaUpdateManyMutationInput = {
 export type PersonaUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemPrompt?: Prisma.StringFieldUpdateOperationsInput | string
   emotionalHooks?: Prisma.StringFieldUpdateOperationsInput | string
@@ -386,6 +405,7 @@ export type PersonaUncheckedUpdateManyInput = {
 export type PersonaCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  code?: Prisma.SortOrder
   description?: Prisma.SortOrder
   systemPrompt?: Prisma.SortOrder
   emotionalHooks?: Prisma.SortOrder
@@ -399,6 +419,7 @@ export type PersonaCountOrderByAggregateInput = {
 export type PersonaMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  code?: Prisma.SortOrder
   description?: Prisma.SortOrder
   systemPrompt?: Prisma.SortOrder
   emotionalHooks?: Prisma.SortOrder
@@ -412,6 +433,7 @@ export type PersonaMaxOrderByAggregateInput = {
 export type PersonaMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  code?: Prisma.SortOrder
   description?: Prisma.SortOrder
   systemPrompt?: Prisma.SortOrder
   emotionalHooks?: Prisma.SortOrder
@@ -448,6 +470,7 @@ export type PersonaUpdateOneRequiredWithoutGenerationRunsNestedInput = {
 export type PersonaCreateWithoutGenerationRunsInput = {
   id?: string
   name: string
+  code?: string
   description?: string | null
   systemPrompt: string
   emotionalHooks?: string
@@ -461,6 +484,7 @@ export type PersonaCreateWithoutGenerationRunsInput = {
 export type PersonaUncheckedCreateWithoutGenerationRunsInput = {
   id?: string
   name: string
+  code?: string
   description?: string | null
   systemPrompt: string
   emotionalHooks?: string
@@ -490,6 +514,7 @@ export type PersonaUpdateToOneWithWhereWithoutGenerationRunsInput = {
 export type PersonaUpdateWithoutGenerationRunsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemPrompt?: Prisma.StringFieldUpdateOperationsInput | string
   emotionalHooks?: Prisma.StringFieldUpdateOperationsInput | string
@@ -503,6 +528,7 @@ export type PersonaUpdateWithoutGenerationRunsInput = {
 export type PersonaUncheckedUpdateWithoutGenerationRunsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   systemPrompt?: Prisma.StringFieldUpdateOperationsInput | string
   emotionalHooks?: Prisma.StringFieldUpdateOperationsInput | string
@@ -547,6 +573,7 @@ export type PersonaCountOutputTypeCountGenerationRunsArgs<ExtArgs extends runtim
 export type PersonaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  code?: boolean
   description?: boolean
   systemPrompt?: boolean
   emotionalHooks?: boolean
@@ -562,6 +589,7 @@ export type PersonaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
 export type PersonaSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  code?: boolean
   description?: boolean
   systemPrompt?: boolean
   emotionalHooks?: boolean
@@ -575,6 +603,7 @@ export type PersonaSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
 export type PersonaSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  code?: boolean
   description?: boolean
   systemPrompt?: boolean
   emotionalHooks?: boolean
@@ -588,6 +617,7 @@ export type PersonaSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
 export type PersonaSelectScalar = {
   id?: boolean
   name?: boolean
+  code?: boolean
   description?: boolean
   systemPrompt?: boolean
   emotionalHooks?: boolean
@@ -598,7 +628,7 @@ export type PersonaSelectScalar = {
   updatedAt?: boolean
 }
 
-export type PersonaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "systemPrompt" | "emotionalHooks" | "customerQuotes" | "toneNotes" | "active" | "createdAt" | "updatedAt", ExtArgs["result"]["persona"]>
+export type PersonaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "code" | "description" | "systemPrompt" | "emotionalHooks" | "customerQuotes" | "toneNotes" | "active" | "createdAt" | "updatedAt", ExtArgs["result"]["persona"]>
 export type PersonaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   generationRuns?: boolean | Prisma.Persona$generationRunsArgs<ExtArgs>
   _count?: boolean | Prisma.PersonaCountOutputTypeDefaultArgs<ExtArgs>
@@ -614,6 +644,7 @@ export type $PersonaPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     name: string
+    code: string
     description: string | null
     systemPrompt: string
     emotionalHooks: string
@@ -1048,6 +1079,7 @@ export interface Prisma__PersonaClient<T, Null = never, ExtArgs extends runtime.
 export interface PersonaFieldRefs {
   readonly id: Prisma.FieldRef<"Persona", 'String'>
   readonly name: Prisma.FieldRef<"Persona", 'String'>
+  readonly code: Prisma.FieldRef<"Persona", 'String'>
   readonly description: Prisma.FieldRef<"Persona", 'String'>
   readonly systemPrompt: Prisma.FieldRef<"Persona", 'String'>
   readonly emotionalHooks: Prisma.FieldRef<"Persona", 'String'>

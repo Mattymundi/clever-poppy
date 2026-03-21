@@ -63,6 +63,11 @@ export type CalloutFactSource = Prisma.CalloutFactSourceModel
  */
 export type AdFeedback = Prisma.AdFeedbackModel
 /**
+ * Model SystemConfig
+ * 
+ */
+export type SystemConfig = Prisma.SystemConfigModel
+/**
  * Model GenerationRun
  * 
  */

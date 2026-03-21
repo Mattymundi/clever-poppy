@@ -20,8 +20,20 @@ export type AdTypeModel = runtime.Types.Result.DefaultSelection<Prisma.$AdTypePa
 
 export type AggregateAdType = {
   _count: AdTypeCountAggregateOutputType | null
+  _avg: AdTypeAvgAggregateOutputType | null
+  _sum: AdTypeSumAggregateOutputType | null
   _min: AdTypeMinAggregateOutputType | null
   _max: AdTypeMaxAggregateOutputType | null
+}
+
+export type AdTypeAvgAggregateOutputType = {
+  sortOrder: number | null
+  typeNumber: number | null
+}
+
+export type AdTypeSumAggregateOutputType = {
+  sortOrder: number | null
+  typeNumber: number | null
 }
 
 export type AdTypeMinAggregateOutputType = {
@@ -37,6 +49,8 @@ export type AdTypeMinAggregateOutputType = {
   useCalloutFacts: boolean | null
   approvedExamples: string | null
   qualityNotes: string | null
+  sortOrder: number | null
+  typeNumber: number | null
   active: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -55,6 +69,8 @@ export type AdTypeMaxAggregateOutputType = {
   useCalloutFacts: boolean | null
   approvedExamples: string | null
   qualityNotes: string | null
+  sortOrder: number | null
+  typeNumber: number | null
   active: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -73,12 +89,24 @@ export type AdTypeCountAggregateOutputType = {
   useCalloutFacts: number
   approvedExamples: number
   qualityNotes: number
+  sortOrder: number
+  typeNumber: number
   active: number
   createdAt: number
   updatedAt: number
   _all: number
 }
 
+
+export type AdTypeAvgAggregateInputType = {
+  sortOrder?: true
+  typeNumber?: true
+}
+
+export type AdTypeSumAggregateInputType = {
+  sortOrder?: true
+  typeNumber?: true
+}
 
 export type AdTypeMinAggregateInputType = {
   id?: true
@@ -93,6 +121,8 @@ export type AdTypeMinAggregateInputType = {
   useCalloutFacts?: true
   approvedExamples?: true
   qualityNotes?: true
+  sortOrder?: true
+  typeNumber?: true
   active?: true
   createdAt?: true
   updatedAt?: true
@@ -111,6 +141,8 @@ export type AdTypeMaxAggregateInputType = {
   useCalloutFacts?: true
   approvedExamples?: true
   qualityNotes?: true
+  sortOrder?: true
+  typeNumber?: true
   active?: true
   createdAt?: true
   updatedAt?: true
@@ -129,6 +161,8 @@ export type AdTypeCountAggregateInputType = {
   useCalloutFacts?: true
   approvedExamples?: true
   qualityNotes?: true
+  sortOrder?: true
+  typeNumber?: true
   active?: true
   createdAt?: true
   updatedAt?: true
@@ -173,6 +207,18 @@ export type AdTypeAggregateArgs<ExtArgs extends runtime.Types.Extensions.Interna
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: AdTypeAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: AdTypeSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: AdTypeMinAggregateInputType
@@ -203,6 +249,8 @@ export type AdTypeGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   _count?: AdTypeCountAggregateInputType | true
+  _avg?: AdTypeAvgAggregateInputType
+  _sum?: AdTypeSumAggregateInputType
   _min?: AdTypeMinAggregateInputType
   _max?: AdTypeMaxAggregateInputType
 }
@@ -220,10 +268,14 @@ export type AdTypeGroupByOutputType = {
   useCalloutFacts: boolean
   approvedExamples: string
   qualityNotes: string | null
+  sortOrder: number
+  typeNumber: number
   active: boolean
   createdAt: Date
   updatedAt: Date
   _count: AdTypeCountAggregateOutputType | null
+  _avg: AdTypeAvgAggregateOutputType | null
+  _sum: AdTypeSumAggregateOutputType | null
   _min: AdTypeMinAggregateOutputType | null
   _max: AdTypeMaxAggregateOutputType | null
 }
@@ -259,6 +311,8 @@ export type AdTypeWhereInput = {
   useCalloutFacts?: Prisma.BoolFilter<"AdType"> | boolean
   approvedExamples?: Prisma.StringFilter<"AdType"> | string
   qualityNotes?: Prisma.StringNullableFilter<"AdType"> | string | null
+  sortOrder?: Prisma.IntFilter<"AdType"> | number
+  typeNumber?: Prisma.IntFilter<"AdType"> | number
   active?: Prisma.BoolFilter<"AdType"> | boolean
   createdAt?: Prisma.DateTimeFilter<"AdType"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AdType"> | Date | string
@@ -277,6 +331,8 @@ export type AdTypeOrderByWithRelationInput = {
   useCalloutFacts?: Prisma.SortOrder
   approvedExamples?: Prisma.SortOrder
   qualityNotes?: Prisma.SortOrderInput | Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
+  typeNumber?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -298,6 +354,8 @@ export type AdTypeWhereUniqueInput = Prisma.AtLeast<{
   useCalloutFacts?: Prisma.BoolFilter<"AdType"> | boolean
   approvedExamples?: Prisma.StringFilter<"AdType"> | string
   qualityNotes?: Prisma.StringNullableFilter<"AdType"> | string | null
+  sortOrder?: Prisma.IntFilter<"AdType"> | number
+  typeNumber?: Prisma.IntFilter<"AdType"> | number
   active?: Prisma.BoolFilter<"AdType"> | boolean
   createdAt?: Prisma.DateTimeFilter<"AdType"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AdType"> | Date | string
@@ -316,12 +374,16 @@ export type AdTypeOrderByWithAggregationInput = {
   useCalloutFacts?: Prisma.SortOrder
   approvedExamples?: Prisma.SortOrder
   qualityNotes?: Prisma.SortOrderInput | Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
+  typeNumber?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.AdTypeCountOrderByAggregateInput
+  _avg?: Prisma.AdTypeAvgOrderByAggregateInput
   _max?: Prisma.AdTypeMaxOrderByAggregateInput
   _min?: Prisma.AdTypeMinOrderByAggregateInput
+  _sum?: Prisma.AdTypeSumOrderByAggregateInput
 }
 
 export type AdTypeScalarWhereWithAggregatesInput = {
@@ -340,6 +402,8 @@ export type AdTypeScalarWhereWithAggregatesInput = {
   useCalloutFacts?: Prisma.BoolWithAggregatesFilter<"AdType"> | boolean
   approvedExamples?: Prisma.StringWithAggregatesFilter<"AdType"> | string
   qualityNotes?: Prisma.StringNullableWithAggregatesFilter<"AdType"> | string | null
+  sortOrder?: Prisma.IntWithAggregatesFilter<"AdType"> | number
+  typeNumber?: Prisma.IntWithAggregatesFilter<"AdType"> | number
   active?: Prisma.BoolWithAggregatesFilter<"AdType"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AdType"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"AdType"> | Date | string
@@ -358,6 +422,8 @@ export type AdTypeCreateInput = {
   useCalloutFacts?: boolean
   approvedExamples?: string
   qualityNotes?: string | null
+  sortOrder?: number
+  typeNumber?: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -376,6 +442,8 @@ export type AdTypeUncheckedCreateInput = {
   useCalloutFacts?: boolean
   approvedExamples?: string
   qualityNotes?: string | null
+  sortOrder?: number
+  typeNumber?: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -394,6 +462,8 @@ export type AdTypeUpdateInput = {
   useCalloutFacts?: Prisma.BoolFieldUpdateOperationsInput | boolean
   approvedExamples?: Prisma.StringFieldUpdateOperationsInput | string
   qualityNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  typeNumber?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -412,6 +482,8 @@ export type AdTypeUncheckedUpdateInput = {
   useCalloutFacts?: Prisma.BoolFieldUpdateOperationsInput | boolean
   approvedExamples?: Prisma.StringFieldUpdateOperationsInput | string
   qualityNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  typeNumber?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -430,6 +502,8 @@ export type AdTypeCreateManyInput = {
   useCalloutFacts?: boolean
   approvedExamples?: string
   qualityNotes?: string | null
+  sortOrder?: number
+  typeNumber?: number
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -448,6 +522,8 @@ export type AdTypeUpdateManyMutationInput = {
   useCalloutFacts?: Prisma.BoolFieldUpdateOperationsInput | boolean
   approvedExamples?: Prisma.StringFieldUpdateOperationsInput | string
   qualityNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  typeNumber?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -466,6 +542,8 @@ export type AdTypeUncheckedUpdateManyInput = {
   useCalloutFacts?: Prisma.BoolFieldUpdateOperationsInput | boolean
   approvedExamples?: Prisma.StringFieldUpdateOperationsInput | string
   qualityNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  typeNumber?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -484,9 +562,16 @@ export type AdTypeCountOrderByAggregateInput = {
   useCalloutFacts?: Prisma.SortOrder
   approvedExamples?: Prisma.SortOrder
   qualityNotes?: Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
+  typeNumber?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type AdTypeAvgOrderByAggregateInput = {
+  sortOrder?: Prisma.SortOrder
+  typeNumber?: Prisma.SortOrder
 }
 
 export type AdTypeMaxOrderByAggregateInput = {
@@ -502,6 +587,8 @@ export type AdTypeMaxOrderByAggregateInput = {
   useCalloutFacts?: Prisma.SortOrder
   approvedExamples?: Prisma.SortOrder
   qualityNotes?: Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
+  typeNumber?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -520,9 +607,24 @@ export type AdTypeMinOrderByAggregateInput = {
   useCalloutFacts?: Prisma.SortOrder
   approvedExamples?: Prisma.SortOrder
   qualityNotes?: Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
+  typeNumber?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type AdTypeSumOrderByAggregateInput = {
+  sortOrder?: Prisma.SortOrder
+  typeNumber?: Prisma.SortOrder
+}
+
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 
@@ -540,6 +642,8 @@ export type AdTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   useCalloutFacts?: boolean
   approvedExamples?: boolean
   qualityNotes?: boolean
+  sortOrder?: boolean
+  typeNumber?: boolean
   active?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -558,6 +662,8 @@ export type AdTypeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   useCalloutFacts?: boolean
   approvedExamples?: boolean
   qualityNotes?: boolean
+  sortOrder?: boolean
+  typeNumber?: boolean
   active?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -576,6 +682,8 @@ export type AdTypeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   useCalloutFacts?: boolean
   approvedExamples?: boolean
   qualityNotes?: boolean
+  sortOrder?: boolean
+  typeNumber?: boolean
   active?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -594,12 +702,14 @@ export type AdTypeSelectScalar = {
   useCalloutFacts?: boolean
   approvedExamples?: boolean
   qualityNotes?: boolean
+  sortOrder?: boolean
+  typeNumber?: boolean
   active?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AdTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "category" | "description" | "imagePromptTemplate" | "exampleDescription" | "requiresQuote" | "requiresBeforeAfter" | "requiresComparison" | "useCalloutFacts" | "approvedExamples" | "qualityNotes" | "active" | "createdAt" | "updatedAt", ExtArgs["result"]["adType"]>
+export type AdTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "category" | "description" | "imagePromptTemplate" | "exampleDescription" | "requiresQuote" | "requiresBeforeAfter" | "requiresComparison" | "useCalloutFacts" | "approvedExamples" | "qualityNotes" | "sortOrder" | "typeNumber" | "active" | "createdAt" | "updatedAt", ExtArgs["result"]["adType"]>
 
 export type $AdTypePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "AdType"
@@ -617,6 +727,8 @@ export type $AdTypePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     useCalloutFacts: boolean
     approvedExamples: string
     qualityNotes: string | null
+    sortOrder: number
+    typeNumber: number
     active: boolean
     createdAt: Date
     updatedAt: Date
@@ -1055,6 +1167,8 @@ export interface AdTypeFieldRefs {
   readonly useCalloutFacts: Prisma.FieldRef<"AdType", 'Boolean'>
   readonly approvedExamples: Prisma.FieldRef<"AdType", 'String'>
   readonly qualityNotes: Prisma.FieldRef<"AdType", 'String'>
+  readonly sortOrder: Prisma.FieldRef<"AdType", 'Int'>
+  readonly typeNumber: Prisma.FieldRef<"AdType", 'Int'>
   readonly active: Prisma.FieldRef<"AdType", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"AdType", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"AdType", 'DateTime'>
