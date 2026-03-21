@@ -95,22 +95,19 @@ export async function uploadFileToDrive(
   };
 }
 
-export function formatRunFolderName(adTypeNames: string[]): string {
-  const now = new Date();
-  const date = now.toLocaleDateString("en-AU", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).replace(/\//g, "-");
-  const time = now.toLocaleTimeString("en-AU", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).replace(":", "");
-
+export function formatRunFolderName(
+  adTypeNames: string[],
+  sequenceStart?: number,
+  adCount?: number
+): string {
   const typesSummary = adTypeNames.length <= 3
     ? adTypeNames.join(", ")
     : `${adTypeNames.slice(0, 3).join(", ")} +${adTypeNames.length - 3} more`;
 
-  return `${date} ${time} — ${typesSummary}`;
+  if (sequenceStart != null && adCount != null && adCount > 0) {
+    const seqEnd = sequenceStart + adCount - 1;
+    return `${sequenceStart} to ${seqEnd} - ${typesSummary}`;
+  }
+
+  return typesSummary;
 }

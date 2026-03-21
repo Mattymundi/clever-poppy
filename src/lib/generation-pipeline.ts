@@ -79,7 +79,7 @@ export async function runGenerationPipeline(runId: string, config: GenerationCon
     let driveFolderUrl: string | null = null;
 
     if (rootFolderId) {
-      const folderName = formatRunFolderName(adTypes.map((t) => t.name));
+      const folderName = formatRunFolderName(adTypes.map((t) => t.name), sequenceStart, config.adCount);
       const folder = await createDriveFolder(folderName, rootFolderId);
       driveFolderId = folder.folderId;
       driveFolderUrl = folder.webViewLink;
