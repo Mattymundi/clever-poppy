@@ -165,8 +165,10 @@ export async function runGenerationPipeline(runId: string, config: GenerationCon
           try {
             // Pick a random product image
             let imageBuffer: Buffer | null = null;
+            let usedKitName = "Generic";
             if (allImages.length > 0) {
               const randomImage = allImages[Math.floor(Math.random() * allImages.length)];
+              usedKitName = randomImage.kitName || "Generic";
               try {
                 const response = await fetch(randomImage.url);
                 if (response.ok) {
@@ -198,9 +200,8 @@ export async function runGenerationPipeline(runId: string, config: GenerationCon
                     const seqNum = String(sequenceStart + adIndex).padStart(6, "0");
                     const typeNum = String(adTypeLookup.get(adTypeKey)?.typeNumber ?? 0).padStart(3, "0");
                     const personaCode = (persona.code || "UNK").toUpperCase().padEnd(3, "X").slice(0, 3);
-                    // Convert product_reference to PascalCase kit name (e.g. "bee_happy" -> "BeeHappy")
-                    const kitRaw = (adCopy as any).product_reference || "Generic";
-                    const kitName = kitRaw.split(/[_\-\s]+/).map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join("");
+                    // Convert actual kit name to PascalCase (e.g. "Bee Happy" -> "BeeHappy")
+                    const kitName = usedKitName.split(/[_\-\s]+/).map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join("");
                     const filename = `GIMG_${seqNum}_${kitName}_${typeNum}_${personaCode}.png`;
                     const uploaded = await uploadFileToDrive(filename, result, driveFolderId);
                     driveFileUrl = uploaded.webViewLink;
@@ -224,6 +225,7 @@ export async function runGenerationPipeline(runId: string, config: GenerationCon
               index: adIndex,
               ...adCopy,
               generated_image: driveFileUrl,
+              used_kit_name: usedKitName,
               status: adStatus,
               ...(imageError ? { error: imageError } : {}),
             };
@@ -291,8 +293,7 @@ export async function runGenerationPipeline(runId: string, config: GenerationCon
           timestamp: new Date().toISOString(),
           runId,
           fileName: ad.generated_image ? (() => {
-            const kitRaw = ad.product_reference || "Generic";
-            const kitName = kitRaw.split(/[_\-\s]+/).map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join("");
+            const kitName = (ad.used_kit_name || "Generic").split(/[_\-\s]+/).map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join("");
             return `GIMG_${String(sequenceStart + i).padStart(6, "0")}_${kitName}_${String(matchedType?.typeNumber || 0).padStart(3, "0")}_${personaCode}.png`;
           })() : "",
           sequence: sequenceStart + i,
