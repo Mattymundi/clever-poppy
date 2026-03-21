@@ -287,12 +287,10 @@ export default function AdTypesPage() {
               {/* Top row: name + category */}
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  {adType.typeNumber != null && (
-                    <span className="shrink-0 text-[10px] font-mono text-muted-foreground/70">
-                      #{adType.typeNumber}
-                    </span>
-                  )}
                   <h3 className="truncate text-sm font-medium leading-snug">
+                    {adType.typeNumber != null && (
+                      <span className="font-mono text-muted-foreground">{adType.typeNumber}</span>
+                    )}{" "}
                     {adType.name}
                   </h3>
                 </div>

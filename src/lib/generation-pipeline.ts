@@ -198,7 +198,10 @@ export async function runGenerationPipeline(runId: string, config: GenerationCon
                     const seqNum = String(sequenceStart + adIndex).padStart(6, "0");
                     const typeNum = String(adTypeLookup.get(adTypeKey)?.typeNumber ?? 0).padStart(3, "0");
                     const personaCode = (persona.code || "UNK").toUpperCase().padEnd(3, "X").slice(0, 3);
-                    const filename = `GIMG_${seqNum}_${typeNum}_${personaCode}.png`;
+                    // Convert product_reference to PascalCase kit name (e.g. "bee_happy" -> "BeeHappy")
+                    const kitRaw = adCopy.product_reference || "Generic";
+                    const kitName = kitRaw.split(/[_\-\s]+/).map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join("");
+                    const filename = `GIMG_${seqNum}_${kitName}_${typeNum}_${personaCode}.png`;
                     const uploaded = await uploadFileToDrive(filename, result, driveFolderId);
                     driveFileUrl = uploaded.webViewLink;
                     console.log(`Uploaded ad ${adIndex} → ${driveFileUrl}`);
@@ -287,7 +290,11 @@ export async function runGenerationPipeline(runId: string, config: GenerationCon
         return {
           timestamp: new Date().toISOString(),
           runId,
-          fileName: ad.generated_image ? `GIMG_${String(sequenceStart + i).padStart(6, "0")}_${String(matchedType?.typeNumber || 0).padStart(3, "0")}_${personaCode}.png` : "",
+          fileName: ad.generated_image ? (() => {
+            const kitRaw = ad.product_reference || "Generic";
+            const kitName = kitRaw.split(/[_\-\s]+/).map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join("");
+            return `GIMG_${String(sequenceStart + i).padStart(6, "0")}_${kitName}_${String(matchedType?.typeNumber || 0).padStart(3, "0")}_${personaCode}.png`;
+          })() : "",
           sequence: sequenceStart + i,
           adTypeName: ad.ad_type || "",
           typeNumber: matchedType?.typeNumber || 0,

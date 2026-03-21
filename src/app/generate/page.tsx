@@ -869,13 +869,11 @@ export default function GeneratePage() {
                                 checked={isSelected}
                                 onCheckedChange={() => toggleAdType(at.id)}
                               />
-                              <span className="text-sm font-medium truncate">{at.name}</span>
+                              <span className="text-sm font-medium truncate">
+                                <span className="font-mono text-muted-foreground">{at.typeNumber}</span>{" "}
+                                {at.name}
+                              </span>
                             </label>
-
-                            {/* Type number badge */}
-                            <span className="text-[10px] font-mono text-muted-foreground/50 shrink-0">
-                              #{at.typeNumber}
-                            </span>
 
                             {/* Category badge */}
                             <Badge variant="secondary" className="text-xs shrink-0">
