@@ -182,7 +182,7 @@ export async function updateFeedbackInSheet(
     const rows = res.data.values || [];
     let rowIndex = -1;
     for (let i = 1; i < rows.length; i++) {
-      if (rows[i]?.[0] === driveFileUrl) {
+      if (rows[i]?.[0] === fileName) {
         rowIndex = i + 1; // 1-indexed for Sheets API
         break;
       }
