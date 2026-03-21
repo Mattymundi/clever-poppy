@@ -160,23 +160,23 @@ export async function appendToLogSheet(
 
 /**
  * Update an existing row's feedback columns (P = Decision, Q = Discard Reason).
- * Finds the row by matching the Drive File URL in column N.
+ * Finds the row by matching the File Name in column C.
  */
 export async function updateFeedbackInSheet(
-  driveFileUrl: string,
+  fileName: string,
   decision: string,
   discardReason?: string | null
 ): Promise<void> {
-  if (!driveFileUrl) return;
+  if (!fileName) return;
 
   try {
     const spreadsheetId = await getOrCreateLogSheet();
     const sheets = getSheetsClient();
 
-    // Read column N (Drive File URL) to find the matching row
+    // Read column C (File Name) to find the matching row
     const res = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "Generated Ads!N:N",
+      range: "Generated Ads!C:C",
     });
 
     const rows = res.data.values || [];
@@ -189,7 +189,7 @@ export async function updateFeedbackInSheet(
     }
 
     if (rowIndex === -1) {
-      console.warn(`Sheet row not found for Drive URL: ${driveFileUrl}`);
+      console.warn(`Sheet row not found for filename: ${fileName}`);
       return;
     }
 

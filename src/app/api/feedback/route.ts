@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
       discardReason,
       notes,
       driveFileUrl,
+      fileName,
     } = body;
 
     // Validate required fields
@@ -59,10 +60,10 @@ export async function POST(request: NextRequest) {
     });
 
     // Update Google Sheet with feedback (non-blocking)
-    if (driveFileUrl) {
+    if (fileName) {
       try {
         const { updateFeedbackInSheet } = await import("@/lib/google-sheets");
-        await updateFeedbackInSheet(driveFileUrl, decision, discardReason);
+        await updateFeedbackInSheet(fileName, decision, discardReason);
       } catch (err: any) {
         console.error("Failed to update sheet feedback:", err.message);
       }

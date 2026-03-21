@@ -553,6 +553,7 @@ export default function GeneratePage() {
           decision,
           discardReason: reason || undefined,
           driveFileUrl: ad.generated_image || undefined,
+          fileName: ad.file_name || undefined,
         }),
       })
 

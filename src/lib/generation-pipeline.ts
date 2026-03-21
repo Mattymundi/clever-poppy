@@ -221,10 +221,19 @@ export async function runGenerationPipeline(runId: string, config: GenerationCon
 
             const adStatus = imageGenerated && (driveFileUrl || !driveFolderId) ? "success" : "image_failed";
 
+            // Build filename for tracking (even if upload failed, we want to know what it would have been)
+            const adTypeKey2 = (adCopy.ad_type || "ad").replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
+            const seqNum2 = String(sequenceStart + adIndex).padStart(6, "0");
+            const typeNum2 = String(adTypeLookup.get(adTypeKey2)?.typeNumber ?? 0).padStart(3, "0");
+            const personaCode2 = (persona.code || "UNK").toUpperCase().padEnd(3, "X").slice(0, 3);
+            const kitName2 = usedKitName.split(/[_\-\s]+/).map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join("");
+            const adFileName = `GIMG_${seqNum2}_${kitName2}_${typeNum2}_${personaCode2}.png`;
+
             return {
               index: adIndex,
               ...adCopy,
               generated_image: driveFileUrl,
+              file_name: adFileName,
               used_kit_name: usedKitName,
               status: adStatus,
               ...(imageError ? { error: imageError } : {}),
