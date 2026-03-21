@@ -157,3 +157,54 @@ export async function appendToLogSheet(
     // Don't throw — sheet logging should not break the pipeline
   }
 }
+
+/**
+ * Update an existing row's feedback columns (P = Decision, Q = Discard Reason).
+ * Finds the row by matching the Drive File URL in column N.
+ */
+export async function updateFeedbackInSheet(
+  driveFileUrl: string,
+  decision: string,
+  discardReason?: string | null
+): Promise<void> {
+  if (!driveFileUrl) return;
+
+  try {
+    const spreadsheetId = await getOrCreateLogSheet();
+    const sheets = getSheetsClient();
+
+    // Read column N (Drive File URL) to find the matching row
+    const res = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "Generated Ads!N:N",
+    });
+
+    const rows = res.data.values || [];
+    let rowIndex = -1;
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i]?.[0] === driveFileUrl) {
+        rowIndex = i + 1; // 1-indexed for Sheets API
+        break;
+      }
+    }
+
+    if (rowIndex === -1) {
+      console.warn(`Sheet row not found for Drive URL: ${driveFileUrl}`);
+      return;
+    }
+
+    // Update columns P and Q for this row
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `Generated Ads!P${rowIndex}:Q${rowIndex}`,
+      valueInputOption: "RAW",
+      requestBody: {
+        values: [[decision === "keep" ? "Kept" : "Discarded", discardReason || ""]],
+      },
+    });
+
+    console.log(`Updated sheet row ${rowIndex} with feedback: ${decision}`);
+  } catch (err: any) {
+    console.error("Failed to update feedback in Google Sheet:", err.message);
+  }
+}

@@ -58,6 +58,16 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Update Google Sheet with feedback (non-blocking)
+    if (driveFileUrl) {
+      try {
+        const { updateFeedbackInSheet } = await import("@/lib/google-sheets");
+        await updateFeedbackInSheet(driveFileUrl, decision, discardReason);
+      } catch (err: any) {
+        console.error("Failed to update sheet feedback:", err.message);
+      }
+    }
+
     return NextResponse.json(feedback, { status: 201 });
   } catch (error) {
     console.error("Failed to create feedback:", error);
