@@ -199,7 +199,7 @@ export async function runGenerationPipeline(runId: string, config: GenerationCon
                     const typeNum = String(adTypeLookup.get(adTypeKey)?.typeNumber ?? 0).padStart(3, "0");
                     const personaCode = (persona.code || "UNK").toUpperCase().padEnd(3, "X").slice(0, 3);
                     // Convert product_reference to PascalCase kit name (e.g. "bee_happy" -> "BeeHappy")
-                    const kitRaw = adCopy.product_reference || "Generic";
+                    const kitRaw = (adCopy as any).product_reference || "Generic";
                     const kitName = kitRaw.split(/[_\-\s]+/).map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join("");
                     const filename = `GIMG_${seqNum}_${kitName}_${typeNum}_${personaCode}.png`;
                     const uploaded = await uploadFileToDrive(filename, result, driveFolderId);
