@@ -23,12 +23,10 @@ export class GeminiImageProvider implements ImageProvider {
 
     if (isOverlayOnly) {
       // Lifestyle Text Overlay mode: preserve original photo, only add text
-      fullPrompt = `You are given a photograph. Your task is to add a text overlay on top of this EXACT photograph.
+      // Keep the prompt SHORT and direct — long prompts cause more Gemini failures
+      fullPrompt = `Take this exact photo and add text on top of it. Do not change the photo at all — keep every pixel identical. Only add text.
 
-CRITICAL RULES:
-- The photograph must remain COMPLETELY UNCHANGED — do not redraw, reinterpret, add filters, change colors, crop, or modify it in any way
-- You are ONLY adding text on top of the existing photo
-- The output image must be ${config.width}x${config.height} pixels
+Output size: ${config.width}x${config.height} pixels.
 
 ${imagePrompt}`;
     } else {

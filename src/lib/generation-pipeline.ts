@@ -142,10 +142,16 @@ export async function runGenerationPipeline(runId: string, config: GenerationCon
 
     // Create copy provider and generate ad copy
     const copyProvider = createCopyProvider(copyProviderRecord);
-    const adCopies = await copyProvider.generateAdCopy(systemPrompt, {
+    let adCopies = await copyProvider.generateAdCopy(systemPrompt, {
       count: config.adCount,
       imageRatio: config.imageRatio,
     });
+
+    // Trim to requested count if AI returned too many
+    if (adCopies.length > config.adCount) {
+      console.log(`AI returned ${adCopies.length} ads but only ${config.adCount} requested — trimming`);
+      adCopies = adCopies.slice(0, config.adCount);
+    }
 
     // Create image provider
     const imageProvider = createImageProvider(imageProviderRecord);

@@ -27,7 +27,7 @@ export class AnthropicCopyProvider implements CopyProvider {
       messages: [
         {
           role: "user",
-          content: `Generate exactly ${config.count} unique ads now. Return only valid JSON array. Make sure the JSON is complete and properly closed.`,
+          content: `Generate EXACTLY ${config.count} unique ads — no more, no fewer. The JSON array must contain precisely ${config.count} objects. Return only valid JSON array. Make sure the JSON is complete and properly closed.`,
         },
       ],
     });
