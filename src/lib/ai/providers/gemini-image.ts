@@ -26,6 +26,8 @@ export class GeminiImageProvider implements ImageProvider {
       // Keep the prompt SHORT and direct — long prompts cause more Gemini failures
       fullPrompt = `Take this exact photo and add text on top of it. Do not change the photo at all — keep every pixel identical. Only add text.
 
+TEXT POSITION: Center the text horizontally (left-to-right). Place it at ONE-THIRD from the TOP of the image — NOT in the vertical center. The text should sit in the upper portion of the image.
+
 Output size: ${config.width}x${config.height} pixels.
 
 ${imagePrompt}`;
