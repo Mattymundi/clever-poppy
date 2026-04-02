@@ -24,6 +24,7 @@ interface GenerationConfig {
   offer?: string;
   forceOffer?: boolean;
   adTypeOverrides?: Record<string, AdTypeOverrides>;
+  selectedImageUrls?: string[];
 }
 
 export async function runGenerationPipeline(runId: string, config: GenerationConfig) {
@@ -88,13 +89,33 @@ export async function runGenerationPipeline(runId: string, config: GenerationCon
       console.warn("GOOGLE_DRIVE_FOLDER_ID not set — images will not be uploaded to Drive");
     }
 
-    // Pool all active images from selected libraries
+    // Pool images — either from individual selections or full libraries
     const allImages: Array<{ url: string; kitName?: string; description?: string }> = [];
-    for (const lib of imageLibraries) {
-      const images = JSON.parse(lib.images || "[]");
-      for (const img of images) {
-        if (img.active !== false) {
-          allImages.push(img);
+    if (config.selectedImageUrls && config.selectedImageUrls.length > 0) {
+      // User picked specific images — find them in the libraries to get kitName etc.
+      const urlSet = new Set(config.selectedImageUrls);
+      for (const lib of imageLibraries) {
+        const images = JSON.parse(lib.images || "[]");
+        for (const img of images) {
+          if (urlSet.has(img.url)) {
+            allImages.push(img);
+          }
+        }
+      }
+      // Also add any URLs not found in libraries (fallback)
+      for (const url of config.selectedImageUrls) {
+        if (!allImages.some((img) => img.url === url)) {
+          allImages.push({ url });
+        }
+      }
+    } else {
+      // Use all active images from selected libraries
+      for (const lib of imageLibraries) {
+        const images = JSON.parse(lib.images || "[]");
+        for (const img of images) {
+          if (img.active !== false) {
+            allImages.push(img);
+          }
         }
       }
     }

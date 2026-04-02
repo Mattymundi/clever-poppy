@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
       offer,
       forceOffer,
       adTypeOverrides,
+      selectedImageUrls,
     } = body;
 
     if (!personaId || !adCount || !imageRatio) {
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest) {
       offer: offer || "",
       forceOffer: !!forceOffer,
       adTypeOverrides: adTypeOverrides || undefined,
+      selectedImageUrls: selectedImageUrls || undefined,
     };
 
     const run = await prisma.generationRun.create({

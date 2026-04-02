@@ -51,10 +51,16 @@ interface Persona {
   active: boolean
 }
 
+interface ImageLibraryImage {
+  url: string
+  kitName?: string
+  active?: boolean
+}
+
 interface ImageLibrary {
   id: string
   name: string
-  images: string[]
+  images: ImageLibraryImage[]
   active: boolean
 }
 
@@ -111,6 +117,8 @@ export default function GeneratePage() {
   // ---- Config state ----
   const [selectedPersonaId, setSelectedPersonaId] = useState<string>("")
   const [selectedLibraryIds, setSelectedLibraryIds] = useState<Set<string>>(new Set())
+  const [expandedLibraryIds, setExpandedLibraryIds] = useState<Set<string>>(new Set())
+  const [selectedImageUrls, setSelectedImageUrls] = useState<Set<string>>(new Set())
   const [selectedAdTypeIds, setSelectedAdTypeIds] = useState<Set<string>>(new Set())
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null)
   const [imageRatio, setImageRatio] = useState<string>("1:1")
@@ -209,9 +217,11 @@ export default function GeneratePage() {
     ? adTypes.filter((a) => a.category === categoryFilter)
     : adTypes
 
-  const totalImagesSelected = imageLibraries
-    .filter((l) => selectedLibraryIds.has(l.id))
-    .reduce((acc, l) => acc + l.images.length, 0)
+  const totalImagesSelected = selectedImageUrls.size > 0
+    ? selectedImageUrls.size
+    : imageLibraries
+        .filter((l) => selectedLibraryIds.has(l.id))
+        .reduce((acc, l) => acc + l.images.length, 0)
 
   const selectedPersona = personas.find((p) => p.id === selectedPersonaId)
 
@@ -226,8 +236,50 @@ export default function GeneratePage() {
   const toggleLibrary = useCallback((id: string) => {
     setSelectedLibraryIds((prev) => {
       const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+        // Also remove all individual image selections from this library
+        const lib = imageLibraries.find((l) => l.id === id)
+        if (lib) {
+          setSelectedImageUrls((prevUrls) => {
+            const nextUrls = new Set(prevUrls)
+            lib.images.forEach((img) => nextUrls.delete(typeof img === "string" ? img : img.url))
+            return nextUrls
+          })
+        }
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }, [imageLibraries])
+
+  const toggleExpandLibrary = useCallback((id: string) => {
+    setExpandedLibraryIds((prev) => {
+      const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
+      return next
+    })
+  }, [])
+
+  const toggleImageUrl = useCallback((url: string) => {
+    setSelectedImageUrls((prev) => {
+      const next = new Set(prev)
+      if (next.has(url)) next.delete(url)
+      else next.add(url)
+      return next
+    })
+  }, [])
+
+  const toggleAllImagesInLibrary = useCallback((lib: ImageLibrary, select: boolean) => {
+    setSelectedImageUrls((prev) => {
+      const next = new Set(prev)
+      lib.images.forEach((img) => {
+        const url = typeof img === "string" ? img : img.url
+        if (select) next.add(url)
+        else next.delete(url)
+      })
       return next
     })
   }, [])
@@ -391,6 +443,7 @@ export default function GeneratePage() {
           adCount,
           imageRatio,
           imageLibraryIds: Array.from(selectedLibraryIds),
+          selectedImageUrls: selectedImageUrls.size > 0 ? Array.from(selectedImageUrls) : undefined,
           adTypeIds: Array.from(selectedAdTypeIds),
           colorIds: Array.from(selectedColorIds),
           copyProviderId,
@@ -699,7 +752,7 @@ export default function GeneratePage() {
             <CardHeader>
               <CardTitle>Image Libraries</CardTitle>
               <CardDescription>
-                Select image libraries to pull source images from
+                Select libraries or expand to pick individual images
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -708,25 +761,105 @@ export default function GeneratePage() {
                   No active image libraries found.
                 </p>
               ) : (
-                <div className="space-y-3">
-                  {imageLibraries.map((lib) => (
-                    <label
-                      key={lib.id}
-                      className="flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
-                    >
-                      <Checkbox
-                        checked={selectedLibraryIds.has(lib.id)}
-                        onCheckedChange={() => toggleLibrary(lib.id)}
-                      />
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">{lib.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {lib.images.length} images
+                <div className="space-y-2">
+                  {imageLibraries.map((lib) => {
+                    const isExpanded = expandedLibraryIds.has(lib.id)
+                    const isSelected = selectedLibraryIds.has(lib.id)
+                    const libImages = lib.images || []
+                    const selectedInLib = libImages.filter((img) =>
+                      selectedImageUrls.has(typeof img === "string" ? img : img.url)
+                    ).length
+
+                    return (
+                      <div key={lib.id} className="rounded-lg border overflow-hidden">
+                        {/* Library header row */}
+                        <div className="flex items-center gap-3 p-3 transition-colors hover:bg-muted/30">
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => toggleLibrary(lib.id)}
+                          />
+                          <div className="flex-1 cursor-pointer" onClick={() => toggleExpandLibrary(lib.id)}>
+                            <div className="text-sm font-medium">{lib.name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {libImages.length} images
+                              {selectedInLib > 0 && ` · ${selectedInLib} selected`}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => toggleExpandLibrary(lib.id)}
+                            className="rounded p-1 text-muted-foreground/60 hover:text-foreground hover:bg-muted transition-colors"
+                          >
+                            {isExpanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                          </button>
                         </div>
+
+                        {/* Expanded image grid */}
+                        {isExpanded && libImages.length > 0 && (
+                          <div className="border-t bg-muted/10 p-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs text-muted-foreground">
+                                {selectedInLib} of {libImages.length} selected
+                              </span>
+                              <div className="flex gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleAllImagesInLibrary(lib, true)}
+                                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                                >
+                                  Select all
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleAllImagesInLibrary(lib, false)}
+                                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                                >
+                                  Deselect all
+                                </button>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+                              {libImages.map((img, idx) => {
+                                const imgUrl = typeof img === "string" ? img : img.url
+                                const kitName = typeof img === "string" ? undefined : img.kitName
+                                const isImgSelected = selectedImageUrls.has(imgUrl)
+
+                                return (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => toggleImageUrl(imgUrl)}
+                                    className={`relative rounded-md overflow-hidden border-2 transition-all aspect-square ${
+                                      isImgSelected
+                                        ? "border-[var(--brand)] ring-1 ring-[var(--brand)]/30"
+                                        : "border-transparent hover:border-muted-foreground/20"
+                                    }`}
+                                  >
+                                    <img
+                                      src={imgUrl}
+                                      alt={kitName || `Image ${idx + 1}`}
+                                      className="w-full h-full object-cover"
+                                      loading="lazy"
+                                    />
+                                    {isImgSelected && (
+                                      <div className="absolute top-1 right-1 rounded-full bg-[var(--brand)] p-0.5">
+                                        <Check className="size-2.5 text-white" />
+                                      </div>
+                                    )}
+                                    {kitName && (
+                                      <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-1 py-0.5">
+                                        <span className="text-[9px] text-white truncate block">{kitName}</span>
+                                      </div>
+                                    )}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <ImageIcon className="size-4 text-muted-foreground" />
-                    </label>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </CardContent>
